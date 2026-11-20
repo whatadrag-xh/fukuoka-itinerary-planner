@@ -1,0 +1,1782 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fukuoka Itinerary Planner · 福岡旅プランナー</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23100e0c'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle' fill='%23e3c08a' font-family='serif'%3E%E7%A6%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#100e0c; --bg2:#15120f; --panel:#1a1714; --panel2:#221d18;
+    --line:rgba(199,154,82,.20); --line-soft:rgba(199,154,82,.11);
+    --cream:#f2ebdf; --ink:#e8dfd2; --ink-soft:#a89b8d; --ink-dim:#8b8074;
+    --gold:#c79a52; --gold-soft:#e3c08a; --amber:#e0973f; --amber-deep:#c47b28;
+    --blue:#86aec2; --green:#93c1a4;
+    --d1:#c8792f; --d2:#4d7d99; --d3:#5f8a6b; --d4:#8a6a9e;
+    --serif:"Cormorant Garamond",Georgia,"Times New Roman","Yu Mincho",serif;
+    --sans:"Jost",ui-sans-serif,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans JP",sans-serif;
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:86px}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(900px 520px at 82% -8%, rgba(199,154,82,.09), transparent 62%),
+      radial-gradient(760px 460px at -6% 22%, rgba(199,154,82,.05), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font:400 15px/1.62 var(--sans);
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.22;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+  }
+  header,main,footer,.hero,.highlights,.sechead{position:relative;z-index:1}
+  h1,h2,h3,h4{margin:0;font-weight:500;letter-spacing:0}
+  p{margin:0}
+  button{font:inherit;color:inherit;cursor:pointer}
+  a{color:var(--gold-soft);text-decoration:none}
+  a:hover{color:var(--cream)}
+
+  /* ---------- shared type ---------- */
+  .eyebrow{
+    font-size:10.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);
+    font-weight:500;margin-bottom:14px;
+  }
+  .sechead{max-width:1600px;margin:0 auto;padding:64px 26px 26px;text-align:center}
+  .sechead .eyebrow{margin-bottom:12px}
+  .sechead h2{
+    font-family:var(--serif);font-weight:500;font-size:clamp(30px,4vw,44px);
+    text-transform:uppercase;letter-spacing:.18em;color:var(--cream);line-height:1.1;
+  }
+  .sechead h2::after{
+    content:"";display:block;width:44px;height:1px;margin:18px auto 0;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .seclede{
+    max-width:560px;margin:16px auto 0;color:var(--ink-soft);font-size:14px;font-weight:300;letter-spacing:.01em;
+  }
+
+  /* ---------- top bar ---------- */
+  .top{
+    position:sticky;top:0;z-index:1200;
+    background:rgba(14,12,10,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav{
+    display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px;
+    max-width:1600px;margin:0 auto;padding:12px 26px;
+  }
+  .navlinks{display:flex;gap:26px}
+  .navlinks a{
+    font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft);
+    padding-bottom:2px;border-bottom:1px solid transparent;transition:.18s;
+  }
+  .navlinks a:hover{color:var(--gold-soft);border-bottom-color:var(--line)}
+  .brand{display:flex;align-items:center;gap:12px;justify-self:center;min-width:0}
+  .mark{
+    width:40px;height:40px;flex:0 0 40px;border-radius:50%;display:grid;place-items:center;
+    border:1px solid rgba(199,154,82,.55);color:var(--gold-soft);
+    font-size:17px;font-family:"Yu Mincho","Hiragino Mincho ProN",var(--serif);
+    background:radial-gradient(circle at 50% 30%,rgba(199,154,82,.16),transparent 70%);
+  }
+  .mark.small{width:34px;height:34px;flex:0 0 34px;font-size:15px}
+  .brandtext{display:flex;flex-direction:column;line-height:1.15}
+  .brandtext .bn{
+    font-family:var(--serif);font-size:16px;letter-spacing:.34em;text-transform:uppercase;color:var(--cream);
+  }
+  .brandtext .bj{font-size:9.5px;letter-spacing:.3em;color:var(--ink-dim);margin-top:3px}
+  .topright{display:flex;align-items:center;gap:10px;justify-self:end;flex-wrap:wrap;justify-content:flex-end}
+  .stamp{
+    font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-soft);
+    border:1px solid var(--line);border-radius:999px;padding:5px 11px;white-space:nowrap;
+  }
+  .ghost{
+    border:1px solid var(--line);background:transparent;border-radius:999px;padding:8px 15px;
+    font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);white-space:nowrap;
+    transition:.18s;
+  }
+  .ghost:hover{border-color:rgba(199,154,82,.5);color:var(--cream);background:rgba(199,154,82,.06)}
+
+  /* ---------- hero ---------- */
+  .hero{max-width:1600px;margin:0 auto;padding:22px 26px 0}
+  .hero-inner{
+    display:grid;grid-template-columns:1.02fr .98fr;align-items:stretch;overflow:hidden;
+    border:1px solid var(--line);border-radius:22px;
+    background:
+      radial-gradient(700px 420px at 12% 10%, rgba(199,154,82,.10), transparent 60%),
+      linear-gradient(150deg,#1a1613,#120f0d 60%);
+    min-height:500px;
+  }
+  .hero-copy{padding:clamp(30px,4.6vw,64px);display:flex;flex-direction:column;justify-content:center}
+  .hero-title{
+    font-family:var(--serif);font-weight:400;color:var(--cream);
+    font-size:clamp(38px,5.6vw,68px);line-height:.98;letter-spacing:.02em;
+    text-transform:uppercase;margin:0 0 20px;
+  }
+  .hero-title em{
+    font-style:italic;text-transform:none;letter-spacing:0;
+    color:var(--gold-soft);font-weight:400;
+  }
+  .hero-lede{
+    max-width:44ch;color:var(--ink-soft);font-size:14.5px;font-weight:300;line-height:1.75;letter-spacing:.01em;
+  }
+  .hero-actions{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:30px 0 0}
+  .cta{
+    display:inline-flex;align-items:center;gap:10px;padding:14px 26px;border-radius:4px;
+    background:linear-gradient(180deg,#e7a24c,#cd8128);color:#1b1410;
+    font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    box-shadow:0 12px 26px rgba(205,129,40,.22);transition:.18s;
+  }
+  .cta:hover{transform:translateY(-1px);box-shadow:0 16px 30px rgba(205,129,40,.3);color:#1b1410}
+  .cta-ghost{
+    font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding-bottom:5px;
+  }
+  .hero-meta{display:flex;gap:30px;list-style:none;margin:38px 0 0;padding:0;flex-wrap:wrap}
+  .hero-meta li{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim)}
+  .hero-meta b{display:block;font-family:var(--serif);font-size:24px;letter-spacing:.04em;color:var(--gold-soft);font-weight:500}
+  .hero-media{position:relative;min-height:340px;overflow:hidden}
+  .hero-media img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    filter:grayscale(.3) contrast(1.06) brightness(.78);
+  }
+  .hero-media::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(90deg,#15120f 0%,rgba(21,18,15,.55) 22%,rgba(21,18,15,0) 55%),
+               linear-gradient(0deg,rgba(16,14,12,.85),transparent 55%);
+  }
+  .hero-tag{
+    position:absolute;left:26px;bottom:26px;z-index:2;display:flex;flex-direction:column;gap:3px;
+    padding:12px 16px;border:1px solid rgba(199,154,82,.28);border-radius:3px;
+    background:rgba(16,13,11,.55);backdrop-filter:blur(4px);
+  }
+  .hero-tag span{font-family:"Yu Mincho",var(--serif);font-size:12px;letter-spacing:.2em;color:var(--gold-soft)}
+  .hero-tag b{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);font-weight:500}
+
+  /* ---------- highlights ---------- */
+  .highlights{max-width:1600px;margin:0 auto;padding-bottom:10px}
+  .hlgrid{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;padding:6px 26px 0;
+  }
+  .hl{
+    border:1px solid var(--line-soft);border-radius:6px;overflow:hidden;
+    background:linear-gradient(180deg,#1c1815,#161310);
+    transition:.22s;display:flex;flex-direction:column;
+  }
+  .hl:hover{border-color:rgba(199,154,82,.42);transform:translateY(-3px)}
+  .hlpic{position:relative;aspect-ratio:4/3;overflow:hidden;background:#211c17}
+  .hlpic img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    filter:grayscale(.3) brightness(.88) contrast(1.05);transition:.5s;
+  }
+  .hl:hover .hlpic img{filter:grayscale(.05) brightness(.98) contrast(1.05);transform:scale(1.04)}
+  .hlbody{padding:18px 18px 20px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .hljp{font-family:"Yu Mincho",var(--serif);font-size:11px;letter-spacing:.28em;color:var(--gold);margin:0}
+  .hl h3{font-family:var(--serif);font-size:21px;font-weight:500;color:var(--cream);letter-spacing:.02em;line-height:1.2}
+  .hltext{font-size:12.6px;color:var(--ink-soft);font-weight:300;line-height:1.6;margin:2px 0 0}
+  .pill{
+    align-self:flex-start;margin-top:auto;padding:5px 10px;border-radius:2px;
+    background:rgba(224,151,63,.14);border:1px solid rgba(224,151,63,.34);
+    color:var(--gold-soft);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  }
+
+  /* ---------- layout ---------- */
+  main{
+    display:grid;grid-template-columns:322px minmax(0,1fr);gap:20px;
+    padding:8px 26px 56px;max-width:1600px;margin:0 auto;align-items:start;
+  }
+  .panel{
+    background:linear-gradient(180deg,#1b1815,#171412);
+    border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 18px 40px rgba(0,0,0,.25);
+  }
+  aside.panel{padding:20px;position:sticky;top:86px}
+  .out{display:grid;gap:18px;min-width:0}
+
+  /* ---------- controls ---------- */
+  .field{margin-bottom:19px}
+  .field:last-child{margin-bottom:0}
+  .label{
+    font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;
+    color:var(--gold);font-weight:500;margin-bottom:9px;
+  }
+  .seg{display:flex;gap:6px;flex-wrap:wrap}
+  .seg button{
+    flex:1;min-width:50px;padding:9px 6px;border-radius:3px;border:1px solid var(--line-soft);
+    background:rgba(255,255,255,.02);font-size:12px;letter-spacing:.06em;color:var(--ink-soft);transition:.16s;
+  }
+  .seg button:hover{border-color:rgba(199,154,82,.4);color:var(--cream)}
+  .seg button[aria-pressed="true"]{
+    background:linear-gradient(180deg,#e7a24c,#cd8128);border-color:transparent;color:#1b1410;font-weight:600;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{
+    padding:6px 11px;border-radius:999px;border:1px solid var(--line-soft);background:transparent;
+    font-size:12px;color:var(--ink-soft);transition:.16s;
+  }
+  .chip:hover{border-color:rgba(199,154,82,.4);color:var(--cream)}
+  .chip[aria-pressed="true"]{
+    background:rgba(224,151,63,.15);border-color:rgba(224,151,63,.55);color:var(--gold-soft);font-weight:500;
+  }
+  .chip .jp{opacity:.55;font-size:10.5px;margin-left:4px}
+  .go{
+    width:100%;padding:14px;border-radius:3px;border:0;
+    background:linear-gradient(180deg,#e7a24c,#cd8128);color:#1b1410;
+    font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;
+    box-shadow:0 10px 24px rgba(205,129,40,.2);transition:.18s;
+  }
+  .go:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(205,129,40,.28)}
+  .reset{width:100%;margin-top:10px;padding:7px;border:0;background:none;color:var(--ink-dim);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+  .reset:hover{color:var(--gold-soft)}
+  .notice{
+    margin-top:16px;padding:12px 14px;border-radius:4px;background:rgba(199,154,82,.06);
+    border:1px solid var(--line-soft);font-size:11.4px;color:var(--ink-soft);line-height:1.65;font-weight:300;
+  }
+  .notice b{color:var(--gold-soft);font-weight:500}
+
+  /* ---------- map ---------- */
+  .mapwrap{padding:16px 16px 12px}
+  .maphead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .maphead h3{
+    font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);
+  }
+  .maphead span{font-size:10.5px;letter-spacing:.1em;color:var(--ink-dim)}
+  .mapchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .mchip{
+    padding:6px 12px;border-radius:2px;border:1px solid var(--line-soft);background:transparent;
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);transition:.16s;
+  }
+  .mchip:hover{border-color:rgba(199,154,82,.4);color:var(--cream)}
+  .mchip[aria-pressed="true"]{background:rgba(199,154,82,.14);border-color:rgba(199,154,82,.5);color:var(--gold-soft)}
+  #map{height:520px;border-radius:8px;border:1px solid var(--line-soft);background:#171310}
+  #map .leaflet-tile{filter:brightness(.82) contrast(1.06) saturate(.62) sepia(.12)}
+  .mapfail{display:grid;place-items:center;height:100%;color:var(--ink-soft);font-size:12px;padding:24px;text-align:center}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;padding:12px 2px 2px;font-size:10.5px;letter-spacing:.06em;color:var(--ink-soft)}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
+  .pin{
+    width:23px;height:23px;border-radius:50%;color:#1b1410;font-size:11px;font-weight:600;
+    display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.55);border:2px solid #1b1410;
+  }
+  .pin.base{background:#f2ebdf}
+  .streetwrap{background:none;border:0}
+  .streetlab{
+    font-size:10.5px;color:var(--gold-soft);background:rgba(20,17,14,.88);padding:1px 5px;border-radius:3px;
+    white-space:nowrap;letter-spacing:.1em;border:1px solid var(--line);
+  }
+  .leaflet-popup-content-wrapper{
+    background:#1c1815;color:var(--ink);border:1px solid rgba(199,154,82,.32);border-radius:6px;
+    box-shadow:0 16px 36px rgba(0,0,0,.5);
+  }
+  .leaflet-popup-tip{background:#1c1815;border:1px solid rgba(199,154,82,.32)}
+  .leaflet-popup-content{margin:12px 14px;font-size:12.5px;line-height:1.55;font-family:var(--sans)}
+  .leaflet-popup-content img{width:200px;height:120px;object-fit:cover;border-radius:4px;display:block;margin-bottom:8px}
+  .leaflet-popup-content .pj{font-family:var(--serif);font-size:16px;letter-spacing:.04em;color:var(--cream)}
+  .leaflet-popup-content .jp{font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:5px}
+  .leaflet-popup-content a{color:var(--gold-soft)}
+  .leaflet-container{font-family:var(--sans);background:#171310}
+  .leaflet-tooltip{
+    background:#1c1815;border:1px solid rgba(199,154,82,.32);color:var(--cream);border-radius:3px;
+    font-size:11px;letter-spacing:.04em;box-shadow:none;
+  }
+  .leaflet-tooltip-top:before{border-top-color:rgba(199,154,82,.32)}
+  .leaflet-bar a{background:#1c1815;color:var(--ink);border-bottom-color:var(--line-soft)}
+  .leaflet-bar a:hover{background:#241e18;color:var(--gold-soft)}
+  .leaflet-control-attribution{background:rgba(16,14,12,.75)!important;color:var(--ink-dim)!important}
+  .leaflet-control-attribution a{color:var(--gold)!important}
+
+  /* ---------- days ---------- */
+  .day{padding:0;overflow:hidden}
+  .dayhead{
+    display:flex;align-items:center;gap:14px;padding:18px 20px 16px;border-bottom:1px solid var(--line-soft);
+    background:linear-gradient(180deg,rgba(199,154,82,.05),transparent);
+  }
+  .daynum{
+    width:34px;height:34px;flex:0 0 34px;border-radius:50%;display:grid;place-items:center;color:#1b1410;
+    font-family:var(--serif);font-size:15px;font-weight:600;
+  }
+  .dayhead h3{
+    font-family:var(--serif);font-size:22px;font-weight:500;flex:1;min-width:0;letter-spacing:.04em;color:var(--cream);
+  }
+  .dayhead .jpname{font-family:"Yu Mincho",var(--serif);font-weight:400;color:var(--gold);font-size:11px;letter-spacing:.2em;margin-left:10px}
+  .daymeta{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);white-space:nowrap}
+  .tl{padding:4px 20px 16px;list-style:none;margin:0}
+  .tl>li{display:grid;grid-template-columns:58px minmax(0,1fr);gap:14px;padding:16px 0;position:relative}
+  .tl>li+li{border-top:1px solid rgba(199,154,82,.09)}
+  .t{
+    font-size:11px;letter-spacing:.1em;color:var(--gold);font-variant-numeric:tabular-nums;padding-top:3px;
+  }
+  .stopbody{display:flex;gap:14px;align-items:flex-start}
+  .ph{
+    width:108px;height:82px;flex:0 0 108px;object-fit:cover;border-radius:4px;
+    border:1px solid var(--line);background:#241f19;filter:brightness(.94) contrast(1.03);
+  }
+  .ph-none{
+    width:108px;height:82px;flex:0 0 108px;border-radius:4px;border:1px solid var(--line);
+    background:#241f19;display:grid;place-items:center;font-family:"Yu Mincho",var(--serif);font-size:26px;color:var(--gold);
+  }
+  .stoptext{min-width:0;flex:1}
+  .stopname{font-family:var(--serif);font-size:19px;letter-spacing:.02em;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;color:var(--cream)}
+  .stopname .jp{font-family:"Yu Mincho",var(--serif);font-weight:400;font-size:11px;letter-spacing:.18em;color:var(--gold)}
+  .stopname .tag{
+    font-size:8.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;color:var(--ink-dim);
+    background:transparent;border:1px solid var(--line-soft);border-radius:2px;padding:2px 7px;
+  }
+  .blurb{font-size:12.8px;color:var(--ink-soft);margin-top:5px;line-height:1.65;font-weight:300}
+  .leg{
+    font-size:11.5px;color:var(--gold-soft);background:rgba(134,174,194,.07);
+    border:1px solid rgba(134,174,194,.16);border-radius:3px;padding:5px 10px;margin:9px 0 3px;
+    display:inline-flex;gap:10px;align-items:center;flex-wrap:wrap;letter-spacing:.04em;
+  }
+  .leg b{font-weight:500;color:#a9cbdb}
+  .leg .src{color:var(--ink-dim);font-size:10.5px}
+  .tip{
+    margin-top:8px;font-size:11.8px;color:#dcc197;background:rgba(199,154,82,.07);
+    border-left:2px solid var(--gold);border-radius:0 3px 3px 0;padding:7px 11px;line-height:1.6;font-weight:300;
+  }
+  .tip b{color:var(--gold-soft);font-weight:500}
+  .rm{margin-left:auto;border:0;background:none;color:var(--ink-dim);font-size:15px;line-height:1;padding:0 2px;opacity:0;transition:.16s}
+  .tl>li:hover .rm{opacity:1}
+  .rm:hover{color:var(--amber)}
+  .meal{color:var(--ink-dim);font-style:italic}
+  .empty{padding:26px 20px;color:var(--ink-soft);font-size:13px;font-weight:300}
+
+  /* ---------- alternatives + slack ---------- */
+  .alts{margin-top:10px;font-size:12px}
+  .alts summary{
+    cursor:pointer;color:var(--gold);letter-spacing:.08em;font-size:10.5px;text-transform:uppercase;
+    list-style:none;display:inline-flex;align-items:center;gap:6px;
+  }
+  .alts summary::-webkit-details-marker{display:none}
+  .alts summary::after{content:"▾";font-size:9px;color:var(--ink-dim)}
+  .alts[open] summary::after{content:"▴"}
+  .alts ul{
+    margin:11px 0 0;padding:0;list-style:none;display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(min(100%,238px),1fr));gap:8px;
+  }
+  .alts li{
+    display:grid;grid-template-columns:54px minmax(0,1fr);gap:11px;align-items:start;
+    padding:8px;border:1px solid var(--line-soft);border-radius:4px;background:#1a1714;
+    color:var(--ink-soft);font-weight:300;line-height:1.45;border-top:1px solid var(--line-soft);
+  }
+  .alts li:first-child{border-top:1px solid var(--line-soft)}
+  .alts .nameline{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;min-width:0}
+  .alts .nameline b{color:var(--cream);font-weight:500;font-size:12.4px;letter-spacing:.01em}
+  .alts .metaline{margin-top:3px;font-size:11.4px;line-height:1.5;color:var(--ink-soft)}
+  .althumb{
+    width:54px;height:54px;flex:0 0 54px;border-radius:3px;object-fit:cover;
+    border:1px solid var(--line-soft);background:#241f19;filter:brightness(.92) contrast(1.03);
+  }
+  div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif);font-size:21px;color:var(--gold)}
+  .alts .w{color:var(--gold);font-size:10px;letter-spacing:.08em;white-space:nowrap;text-transform:uppercase}
+  .alts .jp{color:var(--ink-dim);font-size:10.5px;letter-spacing:.04em}
+  .extra{
+    margin:12px 20px 18px;padding:13px 15px;border-radius:3px;background:rgba(147,193,164,.07);
+    border:1px solid rgba(147,193,164,.18);font-size:12px;color:#b9d6c4;line-height:1.65;font-weight:300;
+  }
+  .extra b{color:#cfe6d7;font-weight:500}
+  .extra .jp{color:var(--green);font-size:11px}
+
+  /* ---------- summary cards ---------- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .card{padding:20px}
+  .card h3{
+    font-family:var(--serif);font-size:17px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--cream);margin-bottom:12px;
+  }
+  .money{
+    font-family:var(--serif);font-size:38px;font-weight:500;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;color:var(--gold-soft);line-height:1.1;
+  }
+  .money small{font-family:var(--sans);font-size:10.5px;font-weight:400;color:var(--ink-dim);letter-spacing:.12em;text-transform:uppercase}
+  .rows{margin:14px 0 0;padding:0;list-style:none;font-size:12.6px}
+  .rows li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid rgba(199,154,82,.09)}
+  .rows li:last-child{border-bottom:0}
+  .rows .k{color:var(--ink-soft);font-weight:300}
+  .rows .k .jp{color:var(--ink-dim);font-size:10.5px}
+  .rows .v{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap;color:var(--cream)}
+  .verdict{
+    margin-top:14px;padding:11px 13px;border-radius:3px;font-size:12px;line-height:1.65;
+    background:rgba(147,193,164,.07);border:1px solid rgba(147,193,164,.18);color:#b9d6c4;font-weight:300;
+  }
+  .verdict.warn{background:rgba(224,151,63,.08);border-color:rgba(224,151,63,.24);color:#e0c19a}
+  .verdict.note{background:rgba(255,255,255,.03);border-color:var(--line-soft);color:var(--ink-soft)}
+  .verdict b{color:inherit;font-weight:500}
+  .ptable{width:100%;border-collapse:collapse;font-size:11.8px;margin-top:8px}
+  .ptable th,.ptable td{padding:8px 4px;border-bottom:1px solid rgba(199,154,82,.09);text-align:left;vertical-align:top}
+  .ptable th{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:500}
+  .ptable td{color:var(--ink-soft);font-weight:300}
+  .ptable td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ptable .good{color:#a9d3ba;font-weight:500}
+  .ptable .bad{color:#d8a483}
+  .tips{margin:0;padding:0;list-style:none;font-size:12.4px;line-height:1.7}
+  .tips li{padding:9px 0;border-bottom:1px solid rgba(199,154,82,.09);color:var(--ink-soft);font-weight:300}
+  .tips li:last-child{border-bottom:0}
+  .tips b{color:var(--cream);font-weight:500}
+  .tips .jp{color:var(--gold);font-size:10.5px}
+  .foot{font-size:11.4px;color:var(--ink-dim);line-height:1.8;font-weight:300}
+  .foot h4{font-size:9.5px;color:var(--gold);margin-bottom:8px;letter-spacing:.26em;text-transform:uppercase;font-weight:500}
+  .foot ul{margin:0;padding-left:16px}
+  .foot li{margin:3px 0}
+  .foot a{color:var(--ink-soft);border-bottom:1px solid var(--line-soft)}
+  .foot a:hover{color:var(--gold-soft)}
+
+  /* ---------- end bar ---------- */
+  .endbar{
+    max-width:1600px;margin:0 auto;padding:34px 26px 48px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    border-top:1px solid var(--line-soft);text-align:center;
+  }
+  .endbar p{font-family:var(--serif);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-soft)}
+  .endbar p.small{font-family:var(--sans);font-size:9.5px;letter-spacing:.14em;color:var(--ink-dim);text-transform:none}
+
+  @media (max-width:1240px){
+    .hlgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:1040px){
+    .nav{grid-template-columns:1fr auto 1fr;padding:10px 16px}
+    .navlinks{display:none}
+    .brand{grid-column:2}
+    .topright{grid-column:3}
+    .brand{gap:9px}
+    .mark{width:34px;height:34px;flex:0 0 34px;font-size:15px}
+    .brandtext .bn{font-size:13.5px;letter-spacing:.26em}
+    .brandtext .bj{font-size:8.5px;letter-spacing:.22em}
+    .hero{padding:14px 14px 0}
+    .hero-inner{grid-template-columns:1fr;min-height:0}
+    .hero-media{min-height:220px;order:-1}
+    .hero-media::after{background:linear-gradient(0deg,#15120f,rgba(21,18,15,.25) 60%,transparent)}
+    .hero-copy{padding:26px 22px 30px}
+    .sechead{padding:44px 16px 22px}
+    .hlgrid{padding:6px 14px 0;gap:12px}
+    main{grid-template-columns:1fr;padding:8px 14px 40px}
+    aside.panel{position:static}
+    #map{height:400px}
+    .topright .stamp{display:none}
+  }
+  @media (max-width:640px){
+    .nav .mark{display:none}
+    .sechead h2{font-size:26px;letter-spacing:.1em}
+    .brandtext .bn{font-size:12.5px;letter-spacing:.22em}
+    .ghost{padding:7px 12px;letter-spacing:.16em}
+    .hlgrid{grid-template-columns:1fr}
+    .hero-meta{gap:22px}
+    .hero-title{font-size:clamp(32px,9vw,46px)}
+    .dayhead{flex-wrap:wrap;gap:10px 12px}
+    .dayhead h3{font-size:19px;flex:1 1 auto}
+    .daymeta{order:3;flex-basis:100%;padding-left:46px}
+    .tl li{grid-template-columns:44px 1fr;gap:10px}
+    .stopbody{flex-direction:column;gap:9px}
+    .ph,.ph-none{width:100%;height:158px;flex:0 0 158px;border-radius:5px}
+    .brandtext .bj{display:none}
+  }
+  /* ---------- add-a-stop floating sheet ---------- */
+  .addstop{
+    border:1px solid var(--line-soft);background:rgba(255,255,255,.02);color:var(--gold-soft);
+    font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;padding:6px 12px;border-radius:999px;
+    white-space:nowrap;transition:.16s;
+  }
+  .addstop:hover{border-color:var(--gold);color:var(--amber);background:rgba(224,151,63,.1)}
+  .modal{position:fixed;inset:0;z-index:140;display:none}
+  .modal.open{display:block}
+  .modal-back{position:absolute;inset:0;background:rgba(8,6,5,.58);backdrop-filter:blur(3px)}
+  .sheet{
+    position:absolute;right:26px;bottom:26px;width:min(540px,calc(100vw - 34px));max-height:min(80vh,780px);
+    display:flex;flex-direction:column;overflow:hidden;
+    background:rgba(28,23,19,.84);backdrop-filter:blur(18px) saturate(1.15);
+    border:1px solid rgba(199,154,82,.36);border-radius:6px;
+    box-shadow:0 34px 90px rgba(0,0,0,.62);
+  }
+  .sheet-head{display:flex;gap:12px;padding:17px 19px 13px;border-bottom:1px solid rgba(199,154,82,.16)}
+  .sheet-head h3{font-family:var(--serif);font-size:19px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--cream)}
+  .sheet-head p{font-size:11.4px;line-height:1.55;color:var(--ink-dim);margin-top:5px;font-weight:300}
+  .sheet-x{
+    margin-left:auto;flex:0 0 28px;width:28px;height:28px;border-radius:50%;border:1px solid var(--line-soft);
+    background:none;color:var(--ink-soft);font-size:15px;line-height:1;
+  }
+  .sheet-x:hover{color:var(--amber);border-color:var(--gold)}
+  .sheet-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:11px 19px 0}
+  .sheet-tab{
+    font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;padding:6px 11px;border-radius:999px;
+    border:1px solid var(--line-soft);background:none;color:var(--ink-dim);
+  }
+  .sheet-tab[aria-pressed="true"]{background:var(--amber);border-color:var(--amber);color:#1b1410}
+  .sheet-filters{display:flex;gap:6px;flex-wrap:wrap;padding:9px 19px 11px;border-bottom:1px solid rgba(199,154,82,.12)}
+  .sheet-list{overflow:auto;padding:4px 12px 14px;flex:1 1 auto;scrollbar-width:thin}
+  .opt{display:grid;grid-template-columns:56px minmax(0,1fr) auto;gap:11px;padding:12px 6px;border-bottom:1px solid rgba(199,154,82,.1)}
+  .opt:last-child{border-bottom:0}
+  .opt img,.opt .optph{
+    width:56px;height:56px;object-fit:cover;border-radius:3px;border:1px solid var(--line-soft);
+    background:#241f19;filter:brightness(.93) contrast(1.03);
+  }
+  .opt .optph{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif);font-size:20px;color:var(--gold)}
+  .opt h4{font-family:var(--serif);font-size:15.5px;font-weight:500;color:var(--cream);letter-spacing:.02em;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .opt h4 .jp{font-family:"Yu Mincho",var(--serif);font-size:10px;letter-spacing:.16em;color:var(--gold)}
+  .opt .rec{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:#1b1410;background:var(--gold);border-radius:2px;padding:2px 6px;align-self:center}
+  .opt .bl{font-size:11.3px;line-height:1.5;color:var(--ink-soft);margin-top:3px;font-weight:300;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .opt .legline{font-size:10.4px;letter-spacing:.03em;color:var(--gold-soft);margin-top:5px;line-height:1.45}
+  .opt .legline b{font-weight:500;color:#a9cbdb}
+  .opt .addto{
+    align-self:center;border:1px solid var(--line);background:rgba(224,151,63,.12);color:var(--gold-soft);
+    padding:8px 13px;border-radius:999px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+  }
+  .opt .addto:hover{background:var(--amber);color:#1b1410;border-color:var(--amber)}
+  .sheet-empty{padding:28px 10px;font-size:12px;color:var(--ink-dim);text-align:center;font-weight:300}
+
+  @media (max-width:640px){
+    .sheet{right:10px;left:10px;bottom:10px;width:auto;max-height:86vh}
+    .opt{grid-template-columns:48px minmax(0,1fr) auto;gap:9px}
+    .opt img,.opt .optph{width:48px;height:48px}
+  }
+  @media print{
+    :root{--bg:#fff;--panel:#fff;--panel2:#fff;--cream:#111;--ink:#111;--ink-soft:#4a4a4a;--ink-dim:#666;
+      --line:#ddd;--line-soft:#e6e6e6;--gold:#8a6520;--gold-soft:#6b4d12;--amber:#8a4700}
+    body{background:#fff;color:#111}
+    body::before{display:none}
+    .top,.hero,.highlights,.endbar{display:none!important}
+    .sechead{padding:0 0 12px;text-align:left}
+    .sechead h2{font-size:22px;color:#111}
+    .sechead h2::after{display:none}
+    .seclede{display:none}
+    main{grid-template-columns:1fr;padding:0;gap:10px}
+    .panel{break-inside:avoid;border-color:#ddd;background:#fff;box-shadow:none}
+    .panel *{color:#111!important;background-image:none!important}
+    .ph,.ph-none{filter:none}
+    #map{height:340px}
+    .leaflet-control-container{display:none}
+    .dayhead,.tl li{border-color:#ddd!important}
+    .tip,.leg,.verdict,.extra,.notice{background:#f7f7f7!important;border-color:#ddd!important}
+    .addstop,.modal{display:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="nav">
+    <nav class="navlinks">
+      <a href="#planner">Planner</a>
+      <a href="#highlights">Highlights</a>
+      <a href="#sourceCard">Sources</a>
+    </nav>
+    <a class="brand" href="#top" aria-label="Fukuoka Itinerary Planner">
+      <span class="mark">福</span>
+      <span class="brandtext">
+        <span class="bn">Fukuoka</span>
+        <span class="bj">福岡旅プランナー</span>
+      </span>
+    </a>
+    <div class="topright">
+      <span class="stamp">Fares verified · Nov 2026</span>
+      <button class="ghost" id="printBtn">Export</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <p class="eyebrow">A first-timer's guide · 福岡</p>
+      <h1 class="hero-title">Fukuoka<br><em>Itinerary</em> Planner</h1>
+      <p class="hero-lede">Tell it what you love — shrines and yatai, gardens and the sea — and it sequences a day-by-day route with the walking and transit between every stop, fares from the operators' own 2026 tables, and the places worth adding next door.</p>
+      <div class="hero-actions">
+        <a class="cta" href="#planner">Build my itinerary</a>
+        <a class="cta-ghost" href="#highlights">See highlights</a>
+      </div>
+      <ul class="hero-meta">
+        <li><b>26</b> places</li>
+        <li><b>8</b> fare sources</li>
+        <li><b>59</b> photographs</li>
+      </ul>
+    </div>
+    <div class="hero-media">
+      <img src="img/nakasu.jpg" alt="Nakasu yatai food stalls at night, Fukuoka">
+      <div class="hero-tag"><span>中洲屋台</span><b>Nakasu Yatai · Fukuoka</b></div>
+    </div>
+  </div>
+</section>
+
+<section class="highlights" id="highlights">
+  <div class="sechead">
+    <p class="eyebrow">Selected for a first visit · 厳選</p>
+    <h2>Highlights</h2>
+    <p class="seclede">Four things this plan is built around — each one is a stop in the itinerary below.</p>
+  </div>
+  <div class="hlgrid">
+    <article class="hl">
+      <div class="hlpic"><img src="img/kushida.jpg" alt="Kushida Shrine" loading="lazy"></div>
+      <div class="hlbody">
+        <p class="hljp">櫛田神社</p>
+        <h3>Kushida Shrine</h3>
+        <p class="hltext">Hakata's guardian shrine since 757, and the home of the Yamakasa festival.</p>
+        <span class="pill">Free · Temple</span>
+      </div>
+    </article>
+    <article class="hl">
+      <div class="hlpic"><img src="img/nakasu.jpg" alt="Nakasu yatai food stalls" loading="lazy"></div>
+      <div class="hlbody">
+        <p class="hljp">中洲屋台</p>
+        <h3>Nakasu Yatai</h3>
+        <p class="hltext">Riverside food stalls after dark: ramen, yakitori and oden, one counter at a time.</p>
+        <span class="pill">Cash · Evening</span>
+      </div>
+    </article>
+    <article class="hl">
+      <div class="hlpic"><img src="img/ohori.jpg" alt="Ohori Park lake" loading="lazy"></div>
+      <div class="hlbody">
+        <p class="hljp">大濠公園</p>
+        <h3>Ohori Park</h3>
+        <p class="hltext">A two-kilometre lake loop on an old castle moat, with a tea house on the island.</p>
+        <span class="pill">Free · Outdoors</span>
+      </div>
+    </article>
+    <article class="hl">
+      <div class="hlpic"><img src="img/dazaifu.jpg" alt="Dazaifu Tenmangu" loading="lazy"></div>
+      <div class="hlbody">
+        <p class="hljp">太宰府</p>
+        <h3>Dazaifu</h3>
+        <p class="hltext">Tenmangu shrine and Kyushu's old capital, half an hour south of Tenjin.</p>
+        <span class="pill">Day trip · ¥480</span>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div class="sechead" id="planner">
+  <p class="eyebrow">The planner · 旅程</p>
+  <h2>Compose your days</h2>
+  <p class="seclede">Choose a length, a base and what you care about. The route re-sequences as you go, and every price below comes from a published 2026 fare table.</p>
+</div>
+
+<main>
+  <aside class="panel">
+    <div class="field">
+      <div class="label">Trip length</div>
+      <div class="seg" id="daysSeg">
+        <button data-days="2">2 days</button>
+        <button data-days="3">3 days</button>
+        <button data-days="4">4 days</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">Where you stay</div>
+      <div class="seg" id="baseSeg">
+        <button data-base="hakata">Hakata 博多</button>
+        <button data-base="tenjin">Tenjin 天神</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="label">Interests</div>
+      <div class="chips" id="interestChips"></div>
+    </div>
+
+    <div class="field">
+      <div class="label">Day trips</div>
+      <div class="chips" id="tripChips"></div>
+    </div>
+
+    <div class="field">
+      <button class="go" id="optimizeBtn">Optimise itinerary</button>
+      <button class="reset" id="resetBtn">Reset all filters</button>
+    </div>
+
+    <div class="notice">
+      <b>How the costing works.</b> Each leg is priced with the operator's own published table: subway by distance zone
+      (¥210–¥380), Nishitetsu city bus flat ¥150 inside the central zone, and regional rail by the JR Kyushu fare bands.
+      Day-trip fares use the station-pair price after the 1 April 2026 Nishitetsu revision.
+    </div>
+  </aside>
+
+  <section class="out">
+    <div class="panel mapwrap">
+      <div class="maphead">
+        <h3>Route map <span style="font-weight:400;color:#9d9082;font-size:12px">ルートマップ</span></h3>
+        <span>OpenStreetMap · street and district names appear in Japanese</span>
+      </div>
+      <div class="mapchips" id="mapScope"></div>
+      <div id="map"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div id="daysHost" style="display:grid;gap:16px"></div>
+
+    <div class="cards">
+      <div class="panel card" id="budgetCard"></div>
+      <div class="panel card" id="passCard"></div>
+      <div class="panel card" id="tipsCard"></div>
+    </div>
+
+    <div class="panel card foot" id="sourceCard"></div>
+  </section>
+</main>
+
+<footer class="endbar">
+  <span class="mark small">福</span>
+  <p>Fukuoka Itinerary Planner · 福岡旅プランナー</p>
+  <p class="small">Fares from published operator tables · Map tiles © OpenStreetMap contributors · Photographs from Wikimedia Commons</p>
+</footer>
+
+<!-- floating “add a stop” chooser -->
+<div class="modal" id="addModal" aria-hidden="true">
+  <div class="modal-back" data-close></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head">
+      <div>
+        <h3 id="sheetTitle">Add a stop</h3>
+        <p id="sheetSub">Anything you like — the route re-times itself around it.</p>
+      </div>
+      <button class="sheet-x" data-close aria-label="Close">×</button>
+    </div>
+    <div class="sheet-tabs" id="sheetTabs"></div>
+    <div class="sheet-filters" id="sheetCats"></div>
+    <div class="sheet-list" id="sheetList"></div>
+  </div>
+</div>
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ============================================================
+   1. SOURCES — every price below traces back to one of these
+   ============================================================ */
+const SOURCES={
+  subway:{label:'Fukuoka City Subway fare table',url:'https://subway.city.fukuoka.lg.jp/eng/fare/',date:'2026'},
+  subwaypass:{label:'Subway 1-day pass ¥640',url:'https://subway.city.fukuoka.lg.jp/eng/fare/one',date:'2026'},
+  bus150:{label:'Nishitetsu ¥150 flat-fare zone',url:'https://www.nishitetsu.jp/bus/rosen/150',date:'2026'},
+  buspass:{label:'Nishitetsu bus 1-day pass ¥1,200',url:'https://www.nishitetsu.co.jp/en/group/business/mobility/bus.html',date:'2026'},
+  nishitetsu:{label:'Nishitetsu fare revision, 1 April 2026',url:'https://www.nishitetsu.jp/train/2026_unchin-kaitei-ninka/',date:'2026-04-01'},
+  citypass:{label:'Fukuoka Tourist City Pass',url:'https://gofukuoka.jp/citypass.html',date:'2026'},
+  jr:{label:'JR Kyushu ordinary fare table',url:'https://jr-group.jp/kyushu-fare/',date:'2025-04'},
+  airport:{label:'Airport access fares',url:'https://www.i-fukuoka.jp/en/public/traffic/fukuoka-airport-hakata-tenjin-access.html',date:'2026-10-29'}
+};
+
+/* ============================================================
+   2. DATA — 26 places, Japanese names, photo, next-door options
+   ============================================================ */
+const POIS=[
+ {id:'kushida', name:'Kushida Shrine', jp:'櫛田神社', area:'hakata', cats:['temple'], lat:33.5933, lon:130.4106,
+  dwell:40, fee:0, must:true,
+  blurb:'Hakata’s guardian shrine, founded in 757 and the home of the Yamakasa festival.',
+  tip:'Free entry. The Gion Yamakasa float hall behind the main hall is the part most visitors walk past.',
+  near:[{n:'Hakata Machiya Folk Museum',jp:'博多町家ふるさと館',w:'3 min walk',note:'Edo-period townhouse, craft demos, ¥200.'},
+        {n:'Kawabata arcade',jp:'川端商店街',w:'4 min walk',note:'Covered shopping street, mentaiko and sweets.'},
+        {n:'Tochoji Temple',jp:'東長寺',w:'7 min walk',note:'Five-storey pagoda and the great wooden Buddha.'}]},
+
+ {id:'tochoji', name:'Tochoji Temple', jp:'東長寺', area:'hakata', cats:['temple'], lat:33.5954, lon:130.4125,
+  dwell:30, fee:50,
+  blurb:'Fukuoka’s oldest temple, with a 10.8 m seated wooden Buddha — the largest in Japan.',
+  tip:'The Buddha hall costs ¥50, cash only, and closes at 16:30.',
+  near:[{n:'Shofukuji',jp:'聖福寺',w:'4 min walk',note:'Japan’s first Zen temple, founded 1195.'},
+        {n:'Jotenji Temple',jp:'承天寺',w:'6 min walk',note:'Quiet Zen garden; origin of udon and soba.'},
+        {n:'Canal City Hakata',jp:'キャナルシティ博多',w:'10 min walk',note:'Rainy-day mall with a fountain show.'}]},
+
+ {id:'shofukuji', name:'Shofukuji', jp:'聖福寺', area:'hakata', cats:['temple'], lat:33.5966, lon:130.4139,
+  dwell:25, fee:0,
+  blurb:'Japan’s first Zen temple, founded in 1195 — a five-minute walk from Tochoji.',
+  near:[{n:'Tochoji Temple',jp:'東長寺',w:'4 min walk',note:'Pagoda and the giant Buddha hall.'},
+        {n:'Hakata Station',jp:'博多駅',w:'12 min walk',note:'Rail hub, department stores, ekiben.'}]},
+
+ {id:'canal', name:'Canal City Hakata', jp:'キャナルシティ博多', area:'hakata', cats:['shopping'], lat:33.5896, lon:130.4116,
+  dwell:75, fee:0, must:true,
+  blurb:'A mall built around a canal, with a musical fountain show every 30 minutes.',
+  tip:'The most reliable rainy-day option in the city. Ramen Stadium on the 5th floor covers eight regional styles.',
+  near:[{n:'Hakataza Theatre',jp:'博多座',w:'6 min walk',note:'Kabuki and musical theatre; box office open daily.'},
+        {n:'Sumiyoshi Shrine',jp:'住吉神社',w:'12 min walk',note:'One of Japan’s oldest Sumiyoshi shrines.'},
+        {n:'Kushida Shrine',jp:'櫛田神社',w:'9 min walk',note:'The Yamakasa float hall is free.'}]},
+
+ {id:'kawabata', name:'Kawabata Shopping Arcade', jp:'川端商店街', area:'hakata', cats:['shopping','food'], lat:33.5926, lon:130.4076,
+  dwell:45, fee:0,
+  blurb:'Hakata’s oldest covered arcade — mentaiko, sweets, souvenirs and inexpensive lunch counters.',
+  tip:'Fukuoka’s arcades are a local habit: dry, open and busy when it rains.',
+  near:[{n:'Kushida Shrine',jp:'櫛田神社',w:'3 min walk',note:'Enter from the shrine side of the arcade.'},
+        {n:'Reisen Park',jp:'冷泉公園',w:'5 min walk',note:'Riverside benches; summer beer garden.'},
+        {n:'Canal City Hakata',jp:'キャナルシティ博多',w:'8 min walk',note:'Fountain shows on the half hour.'}]},
+
+ {id:'yanagibashi', name:'Yanagibashi Market', jp:'柳橋連合市場', area:'hakata', cats:['market','food'], lat:33.5883, lon:130.4065,
+  dwell:40, fee:0,
+  blurb:'The city’s kitchen: around fifty stalls of fish, pickles, tamagoyaki and grilled skewers.',
+  tip:'Arrive before 11:00 — several stalls pack up in the early afternoon.',
+  near:[{n:'Sumiyoshi Shrine',jp:'住吉神社',w:'6 min walk',note:'Mossy and usually empty of tourists.'},
+        {n:'Rakusui-en Garden',jp:'楽水園',w:'7 min walk',note:'Small Japanese garden with matcha, ¥100.'},
+        {n:'Hakata Station',jp:'博多駅',w:'12 min walk',note:'Useful for luggage lockers.'}]},
+
+ {id:'sumiyoshi', name:'Sumiyoshi Shrine', jp:'住吉神社', area:'hakata', cats:['temple'], lat:33.5850, lon:130.4035,
+  dwell:25, fee:0,
+  blurb:'A quiet, mossy shrine by the river, and one of Japan’s oldest Sumiyoshi shrines.',
+  near:[{n:'Yanagibashi Market',jp:'柳橋連合市場',w:'6 min walk',note:'Breakfast or a late-morning snack.'},
+        {n:'Rakusui-en Garden',jp:'楽水園',w:'5 min walk',note:'Tea house in a walled garden, ¥100.'},
+        {n:'Canal City Hakata',jp:'キャナルシティ博多',w:'12 min walk',note:'Shopping and dinner options.'}]},
+
+ {id:'nakasu', name:'Nakasu Yatai Stalls', jp:'中洲屋台', area:'nakasu', cats:['food'], lat:33.5915, lon:130.4055,
+  dwell:70, fee:0, must:true,
+  blurb:'Fukuoka’s riverside food stalls: ramen, yakitori and oden, one counter at a time.',
+  tip:'Cash only, around ¥3,000 per person. Most small stalls ask each guest to order a drink.',
+  near:[{n:'Nakasu Kawabata shopping street',jp:'中洲川端商店街',w:'3 min walk',note:'Covered arcade parallel to the river.'},
+        {n:'Hakataza Theatre',jp:'博多座',w:'4 min walk',note:'Check the evening programme.'},
+        {n:'Tenjin',jp:'天神',w:'10 min walk',note:'Cross the river for department stores and bars.'}]},
+
+ {id:'tenjin', name:'Tenjin & Daimyo', jp:'天神・大名', area:'tenjin', cats:['shopping','food'], lat:33.5914, lon:130.3986,
+  dwell:90, fee:0, must:true,
+  blurb:'The downtown core: department stores, the underground Tenjin Chikagai mall, and Daimyo’s independent shops and cafés.',
+  tip:'Tenjin Chikagai is the easiest way to cross the centre in the rain, and it connects straight to the subway.',
+  near:[{n:'Daimyo',jp:'大名',w:'6 min walk',note:'Independent clothing, coffee and izakaya streets.'},
+        {n:'ACROS Fukuoka',jp:'アクロス福岡',w:'7 min walk',note:'Free stepped roof garden, open to 18:00.'},
+        {n:'Tenjin Chikagai',jp:'天神地下街',w:'2 min walk',note:'Underground mall linking the subway lines.'}]},
+
+ {id:'acros', name:'ACROS Fukuoka', jp:'アクロス福岡', area:'tenjin', cats:['nature','view'], lat:33.5899, lon:130.3960,
+  dwell:30, fee:0,
+  blurb:'A civic hall with a fifteen-storey stepped roof garden — free, and a good 20-minute wander.',
+  near:[{n:'Tenjin Chikagai',jp:'天神地下街',w:'3 min walk',note:'Directly connected underground.'},
+        {n:'Tenjin Central Park',jp:'天神中央公園',w:'2 min walk',note:'Riverside lawn and food trucks.'},
+        {n:'Nakasu yatai',jp:'中洲屋台',w:'12 min walk',note:'Five minutes by taxi after dark.'}]},
+
+ {id:'ohori', name:'Ohori Park', jp:'大濠公園', area:'ohori', cats:['nature'], lat:33.5858, lon:130.3763,
+  dwell:60, fee:0, must:true,
+  blurb:'A lake loop built from an old castle moat — the city’s favourite walk.',
+  tip:'The 2 km loop takes about 25 minutes at a stroll. Boats and a tea house sit on the island.',
+  near:[{n:'Fukuoka Art Museum',jp:'福岡市美術館',w:'4 min walk',note:'Dali and Kyushu modernists, ¥200.'},
+        {n:'Ohori Japanese Garden',jp:'大濠公園日本庭園',w:'8 min walk',note:'¥250, closed Mondays.'},
+        {n:'Fukuoka Castle ruins',jp:'福岡城跡',w:'9 min walk',note:'Stone walls of the Maizuru Park keep.'}]},
+
+ {id:'castle', name:'Fukuoka Castle Ruins', jp:'福岡城跡', area:'ohori', cats:['nature'], lat:33.5846, lon:130.3830,
+  dwell:50, fee:0,
+  blurb:'Maizuru Park’s stone walls and turrets, with the city’s best cherry trees in late March.',
+  near:[{n:'Ohori Park',jp:'大濠公園',w:'8 min walk',note:'Lake loop and coffee kiosks.'},
+        {n:'Korokan Site',jp:'鴻臚館跡',w:'5 min walk',note:'Excavated 7th-century guest hall, free.'},
+        {n:'Fukuoka Art Museum',jp:'福岡市美術館',w:'9 min walk',note:'Air-conditioned break from the walls.'}]},
+
+ {id:'art', name:'Fukuoka Art Museum', jp:'福岡市美術館', area:'ohori', cats:['art'], lat:33.5864, lon:130.3810,
+  dwell:60, fee:200,
+  blurb:'A compact, friendly collection running from Dali to Kyushu modernists, beside Ohori Park.',
+  near:[{n:'Ohori Park',jp:'大濠公園',w:'2 min walk',note:'The lake is directly outside.'},
+        {n:'Gokoku Shrine',jp:'護国神社',w:'3 min walk',note:'Large shrine inside Maizuru Park.'},
+        {n:'Fukuoka Castle ruins',jp:'福岡城跡',w:'8 min walk',note:'Best at sunset.'}]},
+
+ {id:'tower', name:'Fukuoka Tower', jp:'福岡タワー', area:'momochi', cats:['view'], lat:33.5934, lon:130.3517,
+  dwell:60, fee:800, must:true,
+  blurb:'123 m of glass over the bay. Sunset is the slot worth planning around.',
+  tip:'Observatory ticket ¥800, bought at the base; queues are rare outside weekends.',
+  near:[{n:'Momochi Seaside Park',jp:'ももち浜',w:'7 min walk',note:'Sand and lawns facing the sunset.'},
+        {n:'Marizon',jp:'マリゾン',w:'5 min walk',note:'Seaside chapel and cafe terrace.'},
+        {n:'PayPay Dome',jp:'みずほPayPayドーム',w:'12 min walk',note:'Baseball, or the adjacent malls.'}]},
+
+ {id:'momochi', name:'Momochi Seaside Park', jp:'ももち浜', area:'momochi', cats:['nature'], lat:33.5936, lon:130.3550,
+  dwell:45, fee:0,
+  blurb:'Sand, lawns and the Marizon wedding chapel, five minutes from the tower.',
+  near:[{n:'Fukuoka Tower',jp:'福岡タワー',w:'6 min walk',note:'Observatory open to 22:00.'},
+        {n:'Marizon',jp:'マリゾン',w:'3 min walk',note:'Cafe terrace over the water.'},
+        {n:'PayPay Dome',jp:'みずほPayPayドーム',w:'10 min walk',note:'Team store open on non-game days.'}]},
+
+ {id:'paypay', name:'PayPay Dome & Seaside Momochi', jp:'みずほPayPayドーム', area:'momochi', cats:['view'], lat:33.5952, lon:130.3620,
+  dwell:30, fee:0,
+  blurb:'Baseball stadium, malls and a seaside boardwalk. Worth a look if a game is on.',
+  near:[{n:'Fukuoka Tower',jp:'福岡タワー',w:'12 min walk',note:'Or one stop on the bus.'},
+        {n:'Momochi Seaside Park',jp:'ももち浜',w:'10 min walk',note:'Beach walk back towards the tower.'},
+        {n:'Mark Is Fukuoka Momochi',jp:'マークイズ福岡ももち',w:'4 min walk',note:'Mall with a rooftop garden.'}]},
+
+ {id:'bayside', name:'Bayside Place Hakata', jp:'ベイサイドプレイス博多', area:'bay', cats:['food','shopping'], lat:33.6075, lon:130.4005,
+  dwell:40, fee:0,
+  blurb:'Harbour mall with a fish market and the ferry pier for Shikanoshima.',
+  near:[{n:'Hakata Port Tower',jp:'博多港タワー',w:'2 min walk',note:'Free observation deck.'},
+        {n:'Fukuoka Municipal Ferry',jp:'市営渡船',w:'0 min',note:'Boat to Shikanoshima, ¥680 return.'},
+        {n:'Hakata Station',jp:'博多駅',w:'15 min bus',note:'City bus ¥150 from the port.'}]},
+
+ {id:'uminonaka', name:'Uminonakamichi Seaside Park', jp:'海の中道海浜公園', area:'bay', cats:['nature'], lat:33.6636, lon:130.3620,
+  dwell:150, fee:450,
+  blurb:'A whole island of flower fields, bike paths and a seaside pool — the best half-day escape from the city.',
+  tip:'Rent a bicycle at the gate; the park is far larger than it looks on the map.',
+  near:[{n:'Marine World',jp:'マリンワールド海の中道',w:'10 min walk',note:'Aquarium with a dolphin show.'},
+        {n:'Shikanoshima',jp:'志賀島',w:'15 min bus',note:'Fishing port and seafood set meals.'},
+        {n:'Sunshine Pool',jp:'サンシャインプール',w:'5 min walk',note:'Summer only.'}]},
+
+ {id:'shikanoshima', name:'Shikanoshima Island', jp:'志賀島', area:'bay', cats:['nature','food'], lat:33.6620, lon:130.3050,
+  dwell:150, fee:0,
+  blurb:'A slow island of fishing ports, seafood set meals and a hilltop view back over the bay.',
+  near:[{n:'Shikajima Shrine',jp:'志賀海神社',w:'5 min walk',note:'Ancient shrine tied to the Munakata deities.'},
+        {n:'Katsuma Coast',jp:'勝馬海岸',w:'20 min bus',note:'Quiet swimming beach on the far side.'},
+        {n:'Uminonakamichi',jp:'海の中道海浜公園',w:'15 min bus',note:'Combine the two on one loop.'}]},
+
+ {id:'nanzoin', name:'Nanzoin Reclining Buddha', jp:'南蔵院', area:'sasaguri', cats:['temple'], lat:33.5970, lon:130.5420,
+  dwell:90, fee:0,
+  blurb:'A 41 m bronze reclining Buddha in the hills — genuinely astonishing, and free to visit.',
+  tip:'JR Sasaguri Line from Hakata to Kido-Nanzoinmae, ¥340 and about 25 minutes, then a 3-minute walk.',
+  near:[{n:'Sasaguri Kuju Forest',jp:'篠栗九大の森',w:'20 min walk',note:'Forest walk with a pond, free.'},
+        {n:'Shofukuji Sasaguri',jp:'篠栗四国霊場',w:'15 min walk',note:'Pilgrimage temples through the valley.'}]},
+
+ {id:'dazaifu', name:'Dazaifu Tenmangu', jp:'太宰府天満宮', area:'dazaifu', cats:['temple'], lat:33.5217, lon:130.5348,
+  dwell:90, fee:0, must:true,
+  blurb:'Kyushu’s great shrine to the god of learning, at the end of a lantern-lined approach of sweet shops.',
+  tip:'Try umegae-mochi on the approach — grilled rice cake with red bean, about ¥150. Main hall worship resumed in September 2026 after restoration.',
+  near:[{n:'Kyushu National Museum',jp:'九州国立博物館',w:'5 min walk',note:'Escalator tunnel from behind the shrine, ¥700.'},
+        {n:'Komyozenji Temple',jp:'光明禅寺',w:'3 min walk',note:'Two small moss gardens, ¥300, closed Mondays.'},
+        {n:'Starbucks Dazaifu',jp:'スターバックス太宰府天満宮表参道店',w:'2 min walk',note:'Kengo Kuma’s timber-lattice store.'}]},
+
+ {id:'kyuhaku', name:'Kyushu National Museum', jp:'九州国立博物館', area:'dazaifu', cats:['art'], lat:33.5184, lon:130.5389,
+  dwell:100, fee:700,
+  blurb:'A superb museum on Kyushu’s role as Japan’s window on Asia, directly behind the shrine.',
+  tip:'Closed Mondays. The building alone justifies the walk up the hill.',
+  near:[{n:'Dazaifu Tenmangu',jp:'太宰府天満宮',w:'5 min walk',note:'Back through the escalator tunnel.'},
+        {n:'Komyozenji Temple',jp:'光明禅寺',w:'8 min walk',note:'Moss and stone gardens, ¥300.'},
+        {n:'Kaidan-in',jp:'戒壇院',w:'10 min walk',note:'Quiet 8th-century ordination hall.'}]},
+
+ {id:'futamigaura', name:'Sakurai Futamigaura', jp:'桜井二見ヶ浦', area:'itoshima', cats:['nature','view'], lat:33.5170, lon:130.1845,
+  dwell:60, fee:0, must:true,
+  blurb:'The roped “couple rocks” standing in the sea, with a white torii gate — Itoshima’s postcard.',
+  tip:'Sunset, not midday. Coastal buses thin out after 19:00, so confirm the last one back.',
+  near:[{n:'Sakurai Shrine',jp:'櫻井神社',w:'5 min walk',note:'Quiet shrine tied to the Kuroda clan.'},
+        {n:'Keya no Oto',jp:'芥屋の大門',w:'15 min drive',note:'Basalt sea cave, boat trips in season.'},
+        {n:'Itoshima farm stands',jp:'伊都菜彩',w:'10 min drive',note:'Vegetables, seafood and soft-serve.'}]},
+
+ {id:'shiraito', name:'Shiraito Falls, Itoshima', jp:'白糸の滝', area:'itoshima', cats:['nature'], lat:33.4717, lon:130.2400,
+  dwell:70, fee:0,
+  blurb:'A 24 m waterfall in a mossy gorge, twenty minutes on foot from the bus stop.',
+  near:[{n:'Sakurai Futamigaura',jp:'桜井二見ヶ浦',w:'15 min drive',note:'Pair the two for a coast loop.'},
+        {n:'Ihara mountain trail',jp:'井原山',w:'30 min drive',note:'Ridge walk with views over the bay.'}]},
+
+ {id:'yanagawa', name:'Yanagawa Canal Boats', jp:'柳川川下り', area:'yanagawa', cats:['nature'], lat:33.1630, lon:130.4060,
+  dwell:130, fee:2200,
+  blurb:'Punted boats through the moats of a castle town — the classic slow afternoon.',
+  tip:'Boats board near Mihashira Shrine, five minutes from Nishitetsu-Yanagawa station. Reserve on weekends.',
+  near:[{n:'Ohana',jp:'御花',w:'5 min walk',note:'Former daimyo residence, garden and restaurant.'},
+        {n:'Unagi lunch',jp:'うなぎ',w:'5 min walk',note:'Yanagawa is famous for grilled eel; expect ¥3,000–4,000.'},
+        {n:'Yanagawa Castle ruins',jp:'柳川城跡',w:'10 min walk',note:'Only earthworks remain, but the walk is pleasant.'}]},
+
+ {id:'karatsu', name:'Karatsu Castle', jp:'唐津城', area:'karatsu', cats:['view'], lat:33.4460, lon:129.9780,
+  dwell:90, fee:500,
+  blurb:'A hilltop castle over Karatsu Bay, with the pine-studded Niji-no-Matsubara beach nearby.',
+  near:[{n:'Niji-no-Matsubara',jp:'虹の松原',w:'10 min bus',note:'Pine avenue along the bay, free.'},
+        {n:'Karatsu Kunchi Hall',jp:'唐津くんち会館',w:'8 min walk',note:'Festival floats displayed year-round.'},
+        {n:'Former Karatsu Bank',jp:'旧唐津銀行',w:'7 min walk',note:'Meiji-era brick building, free.'}]}
+];
+
+const TRIP_REGIONS=['dazaifu','itoshima','yanagawa','karatsu','sasaguri'];
+const TRIP_LABELS={dazaifu:'Dazaifu',itoshima:'Itoshima',yanagawa:'Yanagawa',karatsu:'Karatsu',sasaguri:'Sasaguri / Nanzoin'};
+const TRIP_JP={dazaifu:'太宰府',itoshima:'糸島',yanagawa:'柳川',karatsu:'唐津',sasaguri:'篠栗・南蔵院'};
+
+/* regional legs: door-to-door minutes and the published station-pair fare */
+const TRIPS={
+  dazaifu:{
+    legs:{
+      tenjin:{min:38,fare:480,mode:'Nishitetsu limited express',detail:'Nishitetsu Fukuoka (Tenjin) → Nishitetsu-Futsukaichi → Dazaifu',src:'nishitetsu'},
+      hakata:{min:46,fare:740,mode:'Subway + Nishitetsu',detail:'Subway to Tenjin-Minami (¥260), 6-minute walk to Nishitetsu Fukuoka, train ¥480',src:'nishitetsu'}
+    },
+    note:'Nishitetsu Tenjin–Dazaifu is ¥480 since the 1 April 2026 revision. The Tabito Liner bus from Hakata Bus Terminal is ¥800 cash / ¥780 by IC and is not covered by the Tourist City Pass.'},
+  sasaguri:{
+    legs:{
+      hakata:{min:30,fare:340,mode:'JR Sasaguri Line',detail:'JR Hakata → Kido-Nanzoinmae, 3-minute walk to the temple',src:'jr'},
+      tenjin:{min:45,fare:600,mode:'Subway + JR',detail:'Subway to Hakata (¥260) then JR Sasaguri Line (¥340)',src:'jr'}
+    },
+    note:'One of the cheapest major sights in Fukuoka: ¥340 each way on the JR Sasaguri Line.'},
+  itoshima:{
+    legs:{
+      tenjin:{min:55,fare:600,mode:'Subway + JR Chikuhi Line',detail:'Subway to Meinohama (¥260), JR Chikuhi Line to Chikuzen-Maebaru (¥340)',src:'jr'},
+      hakata:{min:62,fare:640,mode:'Subway + JR Chikuhi Line',detail:'Subway to Meinohama (¥300), JR Chikuhi Line to Chikuzen-Maebaru (¥340)',src:'jr'}
+    },
+    note:'Coastal buses beyond Maebaru run hourly at best. Confirm the last departure before committing to sunset.'},
+  yanagawa:{
+    legs:{
+      tenjin:{min:48,fare:960,mode:'Nishitetsu limited express',detail:'Nishitetsu Fukuoka (Tenjin) → Nishitetsu-Yanagawa, no change',src:'nishitetsu'},
+      hakata:{min:58,fare:1220,mode:'Subway + Nishitetsu',detail:'Subway to Tenjin (¥260) then Nishitetsu limited express (¥960)',src:'nishitetsu'}
+    },
+    note:'The boat dock is a 5-minute walk from Nishitetsu-Yanagawa station. The city pass does not cover the section beyond Zasshonokuma.'},
+  karatsu:{
+    legs:{
+      hakata:{min:80,fare:1300,mode:'JR Chikuhi Line',detail:'JR Hakata → Karatsu, direct along the coast',src:'jr'},
+      tenjin:{min:92,fare:1560,mode:'Subway + JR',detail:'Subway to Meinohama (¥260) then JR Chikuhi Line (¥1,300)',src:'jr'}
+    },
+    note:'A long day out: worth it with three days or more, otherwise Karatsu competes badly with Dazaifu.'}
+};
+
+const INTERESTS=[
+  {key:'temple',label:'Temples',jp:'寺社'},
+  {key:'nature',label:'Gardens & nature',jp:'自然'},
+  {key:'food',label:'Food & yatai',jp:'屋台'},
+  {key:'shopping',label:'Shopping',jp:'買い物'},
+  {key:'view',label:'Views',jp:'眺望'},
+  {key:'art',label:'Museums',jp:'美術館'},
+  {key:'market',label:'Markets',jp:'市場'}
+];
+
+const BASE_LABEL={hakata:'Hakata Station',tenjin:'Tenjin'};
+const BASE_JP={hakata:'博多駅',tenjin:'天神'};
+
+/* streets worth knowing by name when you navigate on foot */
+const STREETS=[
+  {jp:'明治通り',en:'Meiji-dōri',lat:33.5906,lon:130.4024},
+  {jp:'渡辺通り',en:'Watanabe-dōri',lat:33.5874,lon:130.3988},
+  {jp:'大博通り',en:'Taihaku-dōri',lat:33.5932,lon:130.4152},
+  {jp:'昭和通り',en:'Shōwa-dōri',lat:33.5872,lon:130.4140},
+  {jp:'国体道路',en:'Kokutai-dōro',lat:33.5846,lon:130.3946},
+  {jp:'那珂川',en:'Naka River',lat:33.5892,lon:130.4058}
+];
+
+/* ============================================================
+   3. FARE ENGINE — published tables, 2026
+   ============================================================ */
+/* Fukuoka City Subway: distance zones, adult ordinary ticket */
+const SUBWAY_ZONES=[[3,210],[7,260],[11,300],[15,340],[19,360],[Infinity,380]];
+function subwayZone(km){
+  for(let i=0;i<SUBWAY_ZONES.length;i++) if(km<=SUBWAY_ZONES[i][0]) return i+1;
+  return 6;
+}
+function subwayFare(km){ return SUBWAY_ZONES[subwayZone(km)-1][1]; }
+
+/* JR Kyushu ordinary fare by revenue kilometres (table revised April 2025) */
+const JR_BANDS=[[3,200],[6,240],[10,270],[15,340],[20,450],[25,560],[30,660],[35,760],[40,870],[45,990],[50,1090],[60,1300],[70,1510],[80,1730]];
+function jrFare(km){
+  for(const [lim,fare] of JR_BANDS) if(km<=lim) return fare;
+  return 1730;
+}
+
+function haversine(a,b){
+  const R=6371,toR=Math.PI/180;
+  const dLat=(b.lat-a.lat)*toR, dLon=(b.lon-a.lon)*toR;
+  const la1=a.lat*toR, la2=b.lat*toR;
+  const h=Math.sin(dLat/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
+}
+const SUBWAY_AREAS=new Set(['tenjin','hakata','nakasu','ohori','momochi']);
+
+function travel(a,b,base){
+  const ra=TRIP_REGIONS.includes(a.area), rb=TRIP_REGIONS.includes(b.area);
+  if((ra||rb)&&a.area!==b.area){
+    const r=ra?a.area:b.area, T=TRIPS[r];
+    const c=T.legs[base]||T.legs.tenjin||T.legs.hakata;
+    return {min:c.min,fare:c.fare,mode:c.mode,detail:c.detail,note:T.note,src:c.src,kind:'daytrip'};
+  }
+  const d=haversine(a,b);
+  if(d<=1.2) return {min:Math.max(4,Math.round(d/4.4*60)),fare:0,mode:'Walk',dist:d,src:'walk'};
+
+  /* inside a day-trip area: local buses, not long-distance rail */
+  if(ra&&rb){
+    const fare=d<=3?200:d<=6?240:d<=10?270:340;
+    return {min:Math.round(7+d*2.6),fare,mode:'Local bus',dist:d,src:'bus',
+      detail:'Nishitetsu local bus, distance fare',note:null};
+  }
+
+  const bothSubway=SUBWAY_AREAS.has(a.area)&&SUBWAY_AREAS.has(b.area);
+  if(bothSubway){
+    const km=Math.max(1,d*1.35), zone=subwayZone(km), fare=subwayFare(km);
+    const subMin=Math.round(11+d*1.7);       /* ride plus platform time */
+    const walkMin=Math.round(d/4.2*60);
+    if(walkMin<=subMin+3) return {min:walkMin,fare:0,mode:'Walk',dist:d,src:'walk'};
+    return {min:subMin,fare,mode:'Subway · zone '+zone,dist:d,src:'subway',
+      detail:'Fukuoka City Subway, '+zone+'-zone adult ticket',note:null};
+  }
+  if(d<=3.6){
+    return {min:Math.round(8+d*3.0),fare:150,mode:'Nishitetsu city bus',dist:d,src:'bus',
+      detail:'Flat fare inside the central ¥150 zone',note:null};
+  }
+  const km=d*1.35;
+  if(km<=22){
+    const fare=jrFare(km);
+    return {min:Math.round(14+d*2.4),fare,mode:'JR or subway + walk',dist:d,src:'jr',
+      detail:'JR Kyushu, '+Math.round(km)+' km band',note:null};
+  }
+  return {min:Math.round(10+d*2.2),fare:d<=8?260:340,mode:'Bus / rail',dist:d,src:'bus',detail:'Nishitetsu bus outside the flat zone',note:null};
+}
+
+const fmt=m=>{
+  m=Math.round(m);
+  const h=Math.floor(m/60)%24, mm=((m%60)+60)%60;
+  return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+};
+const mins=m=>Math.round(m)+' min';
+const yen=n=>'¥'+Math.round(n).toLocaleString('en-US');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ============================================================
+   4. ROUTE ORDERING — nearest neighbour + 2-opt
+   ============================================================ */
+function routeCost(r){ let c=0; for(let i=1;i<r.length;i++) c+=haversine(r[i-1],r[i]); return c; }
+function twoOpt(r){
+  let improved=true, guard=0;
+  while(improved && guard++<40){
+    improved=false;
+    for(let i=1;i<r.length-1;i++){
+      for(let j=i+1;j<r.length;j++){
+        const a=r[i-1], b=r[i], c=r[j], d=r[j+1]||null;
+        const before=haversine(a,b)+(d?haversine(c,d):0);
+        const after=haversine(a,c)+(d?haversine(b,d):0);
+        if(after<before-0.002){
+          const seg=r.slice(i,j+1).reverse();
+          r.splice(i,seg.length,...seg);
+          improved=true;
+        }
+      }
+    }
+  }
+}
+function orderStops(pois){
+  if(pois.length<=2) return pois.slice();
+  let best=null,bestCost=Infinity;
+  for(let s=0;s<pois.length;s++){
+    const route=[pois[s]];
+    const rest=pois.filter(p=>p!==pois[s]);
+    while(rest.length){
+      let bi=0,bd=Infinity;
+      rest.forEach((p,i)=>{const d=haversine(route[route.length-1],p); if(d<bd){bd=d;bi=i;}});
+      route.push(rest.splice(bi,1)[0]);
+    }
+    twoOpt(route);
+    const c=routeCost(route);
+    if(c<bestCost){bestCost=c;best=route;}
+  }
+  return best;
+}
+function distribute(pois,n){
+  if(n<=0||!pois.length) return [];
+  const anchors=[pois[0]];
+  while(anchors.length<n && anchors.length<pois.length){
+    let best=null,bd=-1;
+    for(const p of pois){
+      const d=Math.min(...anchors.map(a=>haversine(a,p)));
+      if(d>bd){bd=d;best=p;}
+    }
+    if(!best||anchors.includes(best)) break;
+    anchors.push(best);
+  }
+  const groups=anchors.map(()=>[]);
+  for(const p of pois){
+    let bi=0,bd=Infinity;
+    anchors.forEach((a,i)=>{const d=haversine(a,p); if(d<bd){bd=d;bi=i;}});
+    groups[bi].push(p);
+  }
+  const cap=5;
+  for(let pass=0;pass<8;pass++){
+    const heavy=groups.findIndex(g=>g.length>cap);
+    if(heavy<0) break;
+    const light=groups.reduce((mi,g,i)=>g.length<groups[mi].length?i:mi,0);
+    if(light===heavy) break;
+    groups[light].push(groups[heavy].pop());
+  }
+  return groups.filter(g=>g.length);
+}
+
+/* ============================================================
+   5. SCHEDULING
+   ============================================================ */
+function buildDay(pois,base,startMin=9*60,from=null){
+  const depart=startMin;
+  let t=startMin,prev=from,lunch=false,fares=0,admissions=0,distance=0;
+  const spend={subway:0,bus:0,jr:0};
+  const items=[];
+  pois.forEach((p,idx)=>{
+    let leg=null;
+    if(prev){
+      leg=travel(prev,p,base);
+      t+=leg.min;
+      fares+=leg.fare;
+      if(leg.src==='subway') spend.subway+=leg.fare;
+      else if(leg.src==='bus') spend.bus+=leg.fare;
+      else if(leg.src==='jr'||leg.src==='nishitetsu') spend.jr+=leg.fare;
+      if(leg.dist) distance+=leg.dist;
+    }
+    const isMeal=p.cats.includes('food')||p.cats.includes('market');
+    if(!lunch && isMeal && t>=11*60 && t<=14*60+30) lunch=true;
+    if(!lunch && idx>0 && t>=12*60+10){
+      const ls=Math.max(t,12*60+10);
+      items.push({kind:'lunch',start:ls,end:ls+55});
+      t=ls+55; lunch=true;
+    }
+    const arrive=t;
+    t+=p.dwell;
+    if(p.fee) admissions+=p.fee;
+    items.push({kind:'stop',poi:p,start:arrive,end:t,leg});
+    prev=p;
+  });
+  if(!lunch && pois.length){
+    const ls=Math.max(t,12*60+10);
+    items.push({kind:'lunch',start:ls,end:ls+55});
+    t=Math.max(t,ls+55);
+  }
+  let dinner=null;
+  if(pois.length){
+    dinner=Math.max(t,18*60+30);
+    items.push({kind:'dinner',start:dinner,end:dinner+90});
+  }
+  return {items,depart,lastStop:t,dinner,fares,admissions,distance,spend};
+}
+
+/* ============================================================
+   6. STATE + PLAN
+   ============================================================ */
+const state={days:2,base:'hakata',interests:new Set(['temple','food']),trips:new Set(['dazaifu']),excluded:new Set(),added:[]};
+const isTrip=p=>TRIP_REGIONS.includes(p.area);
+const HOME={hakata:{area:'hakata',name:'Hakata Station',lat:33.5902,lon:130.4207},
+            tenjin:{area:'tenjin',name:'Tenjin Station',lat:33.5914,lon:130.3986}};
+
+function score(p){
+  let s=p.must?5:0;
+  p.cats.forEach(c=>{ if(state.interests.has(c)) s+=3; });
+  return s;
+}
+function buildPlan(){
+  const tripKeys=[...state.trips].slice(0,Math.max(0,state.days-1));
+  const coreDays=Math.max(1,state.days-tripKeys.length);
+
+  let pool=POIS.filter(p=>!isTrip(p)&&!state.excluded.has(p.id)&&(p.must||p.cats.some(c=>state.interests.has(c))));
+  if(state.interests.size===0||pool.length<3)
+    pool=POIS.filter(p=>!isTrip(p)&&!state.excluded.has(p.id)&&p.must);
+  pool=pool.slice().sort((a,b)=>score(b)-score(a));
+
+  const chosen=pool.slice(0,coreDays*5);
+  const groups=distribute(chosen,coreDays);
+
+  const seq=[];
+  let ci=0,ti=0;
+  for(let i=0;i<state.days;i++){
+    if(i%2===1&&ti<tripKeys.length) seq.push({type:'trip',region:tripKeys[ti++]});
+    else if(ci<groups.length) seq.push({type:'core',group:groups[ci++]});
+    else if(ti<tripKeys.length) seq.push({type:'trip',region:tripKeys[ti++]});
+    else seq.push({type:'core',group:[]});
+  }
+
+  /* stops the traveller added by hand from the floating chooser */
+  const addedFor=i=>{
+    const last=Math.max(0,state.days-1);
+    return state.added
+      .filter(a=>Math.min(a.day,last)===Math.min(i,last))
+      .map(a=>POIS.find(p=>p.id===a.id)).filter(Boolean);
+  };
+
+  return seq.map((d,i)=>{
+    const from=HOME[state.base];
+    if(d.type==='trip'){
+      const core=POIS.filter(p=>p.area===d.region);
+      const stops=orderStops(core.concat(addedFor(i).filter(p=>!core.includes(p))));
+      return {index:i,kind:'trip',region:d.region,stops,...buildDay(stops,state.base,9*60,from)};
+    }
+    const group=d.group.concat(addedFor(i).filter(p=>!d.group.includes(p)));
+    const stops=orderStops(group);
+    return {index:i,kind:'core',stops,...buildDay(stops,state.base,9*60,from)};
+  });
+}
+
+/* slack suggestions: what still fits after the last stop, before dinner */
+function slackFor(day,plan){
+  if(!day.stops.length||!day.dinner) return null;
+  const slack=Math.round(day.dinner-day.lastStop);
+  if(slack<50) return null;
+  const used=new Set(plan.flatMap(d=>d.stops.map(p=>p.id)));
+  const last=day.stops[day.stops.length-1];
+  const options=POIS
+    .filter(p=>!used.has(p.id)&&!isTrip(p)&&haversine(last,p)<=2.2&&p.dwell+15<=slack)
+    .map(p=>({p,km:haversine(last,p)}))
+    .sort((a,b)=>a.km-b.km)
+    .slice(0,3);
+  if(!options.length) return null;
+  return {slack,from:last,options};
+}
+
+/* ============================================================
+   7. MAP — Leaflet + OpenStreetMap
+   ============================================================ */
+const DAYCOL=['#c8792f','#4d7d99','#5f8a6b','#8a6a9e'];
+let MAP=null,LAYER=null;
+let MAPSCOPE='auto';   /* 'auto' follows the first city day, 'all' shows the whole trip */
+
+/* the stops the map frames: one day at a time by default, so central pins stay readable */
+function scopeDay(plan){
+  if(MAPSCOPE==='all') return null;
+  if(MAPSCOPE==='auto') return plan.find(d=>d.stops.length>1)||plan.find(d=>d.stops.length)||null;
+  return plan[Number(MAPSCOPE)]||null;
+}
+
+function ensureMap(){
+  const host=document.getElementById('map');
+  if(!window.L){
+    if(host) host.innerHTML='<div class="mapfail">The map library could not load. Check the connection and reload — '+
+      'everything else on this page still works.</div>';
+    return null;
+  }
+  if(MAP) return MAP;
+  MAP=L.map('map',{scrollWheelZoom:true,zoomControl:true,attributionControl:true})
+       .setView([33.5902,130.4207],12);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(MAP);
+  LAYER=L.layerGroup().addTo(MAP);
+  return MAP;
+}
+
+function popupHtml(p,col,n){
+  const img=p.id==='art'||p.id==='nanzoin'
+    ? ''
+    : '<img src="img/'+p.id+'.jpg" alt="'+esc(p.name)+'">';
+  return '<div class="pj">'+n+'. '+esc(p.name)+'</div>'+
+         '<div class="jp">'+esc(p.jp)+'</div>'+
+         img+
+         '<div>'+esc(p.blurb)+'</div>'+
+         '<div style="margin-top:5px;color:#6b6459">'+mins(p.dwell)+' · '+(p.fee?yen(p.fee)+' entry':'free entry')+'</div>';
+}
+
+function drawMap(plan){
+  const map=ensureMap();
+  if(!map) return;
+  LAYER.clearLayers();
+
+  const b=HOME[state.base];
+  L.marker([b.lat,b.lon],{icon:L.divIcon({className:'',html:'<div class="pin base">B</div>',iconSize:[26,26],iconAnchor:[13,13]})})
+    .addTo(LAYER)
+    .bindPopup('<div class="pj">'+BASE_LABEL[state.base]+'</div><div class="jp">'+BASE_JP[state.base]+' · your base</div>');
+
+  const all=[[b.lat,b.lon]];
+
+  plan.forEach((day,di)=>{
+    if(!day.stops.length) return;
+    const col=DAYCOL[di%DAYCOL.length];
+    const line=[[b.lat,b.lon]].concat(day.stops.map(p=>[p.lat,p.lon]));
+    L.polyline(line,{color:col,weight:3,opacity:.72,dashArray:'7 6'}).addTo(LAYER);
+
+    day.stops.forEach((p,k)=>{
+      all.push([p.lat,p.lon]);
+      L.marker([p.lat,p.lon],{
+        icon:L.divIcon({className:'',html:'<div class="pin" style="background:'+col+'">'+(k+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13]}),
+        riseOnHover:true
+      }).addTo(LAYER)
+        .bindPopup(popupHtml(p,col,k+1))
+        .bindTooltip(p.name+' · '+p.jp,{direction:'top',offset:[0,-12]});
+    });
+  });
+
+  const focus=scopeDay(plan);
+  const framed=focus?[[b.lat,b.lon]].concat(focus.stops.map(p=>[p.lat,p.lon])):all;
+  if(framed.length>1){
+    map.fitBounds(L.latLngBounds(framed).pad(0.22),{animate:false});
+  }
+}
+
+function renderMapChips(plan){
+  const host=document.getElementById('mapScope');
+  if(!host) return;
+  const active=scopeDay(plan);
+  const activeIdx=active?plan.indexOf(active):-1;
+  const chips=['<button class="mchip" data-scope="all" aria-pressed="'+(MAPSCOPE==='all')+'">Whole trip</button>'];
+  plan.forEach((d,i)=>{
+    if(!d.stops.length) return;
+    const nm=d.kind==='trip'?TRIP_LABELS[d.region]:dominantArea(d.stops).split(' · ')[0];
+    const jp=d.kind==='trip'?TRIP_JP[d.region]:'';
+    chips.push('<button class="mchip" data-scope="'+i+'" aria-pressed="'+(MAPSCOPE!=='all'&&activeIdx===i)+'">'+
+      'Day '+(i+1)+' · '+esc(nm)+(jp?' <span class="jp">'+esc(jp)+'</span>':'')+'</button>');
+  });
+  host.innerHTML=chips.join('');
+}
+
+/* ============================================================
+   8. RENDERING
+   ============================================================ */
+const catLabel=c=>c.charAt(0).toUpperCase()+c.slice(1);
+
+function stopPhoto(p){
+  return '<img class="ph" src="img/'+p.id+'.jpg" alt="'+esc(p.name)+'" loading="lazy">';
+}
+
+/* photographs for the places-within-reach cards: image file stem per place name */
+const NEARPHOTO={
+  'ACROS Fukuoka':'acros','Canal City Hakata':'canal','Daimyo':'daimyo','Dazaifu Tenmangu':'dazaifu',
+  'Fukuoka Castle ruins':'castle','Fukuoka Tower':'tower','Hakata Station':'hakata-station',
+  'Jotenji Temple':'jotenji','Kaidan-in':'kaidanin','Karatsu Kunchi Hall':'karatsu-kunchi',
+  'Katsuma Coast':'katsuma','Kawabata arcade':'kawabata','Keya no Oto':'keya','Kushida Shrine':'kushida',
+  'Kyushu National Museum':'kyuhaku','Marine World':'marine-world','Marizon':'marizon',
+  'Mark Is Fukuoka Momochi':'markis','Momochi Seaside Park':'momochi','Nakasu yatai':'nakasu',
+  'Niji-no-Matsubara':'niji-matsubara','Ohori Japanese Garden':'ohori','Ohori Park':'ohori',
+  'PayPay Dome':'paypay','Rakusui-en Garden':'rakusuien','Sakurai Futamigaura':'futamigaura',
+  'Sasaguri Kuju Forest':'sasaguri-forest','Shikajima Shrine':'shikajima-shrine','Shikanoshima':'shikanoshima',
+  'Shofukuji':'shofukuji','Shofukuji Sasaguri':'sasaguri-pilgrimage','Sumiyoshi Shrine':'sumiyoshi',
+  'Tenjin':'tenjin','Tenjin Chikagai':'tenjin-chikagai','Tochoji Temple':'tochoji','Uminonakamichi':'uminonaka',
+  'Yanagibashi Market':'yanagibashi',
+  /* second pass: the smaller places, so every card carries a photograph */
+  'Former Karatsu Bank':'former-karatsu-bank','Fukuoka Art Museum':'art','Gokoku Shrine':'gokoku-shrine',
+  'Hakata Machiya Folk Museum':'machiya','Hakata Port Tower':'port-tower','Hakataza Theatre':'hakataza',
+  'Ihara mountain trail':'ihara','Itoshima farm stands':'itoshima-stand','Komyozenji Temple':'komyozenji',
+  'Korokan Site':'korokan','Nakasu Kawabata shopping street':'nakasu-kawabata','Ohana':'ohana',
+  'Reisen Park':'reisen-park','Sakurai Shrine':'sakurai-shrine','Starbucks Dazaifu':'starbucks',
+  'Sunshine Pool':'sunshine-pool','Unagi lunch':'unagi','Yanagawa Castle ruins':'yanagawa-castle',
+  'Fukuoka Municipal Ferry':'bayside'
+};
+function nearThumb(a){
+  const f=NEARPHOTO[a.n];
+  if(f) return '<img class="althumb" src="img/'+f+'.jpg" alt="'+esc(a.n)+'" loading="lazy">';
+  return '<div class="althumb">'+esc((a.jp||a.n).charAt(0))+'</div>';
+}
+function altList(p){
+  if(!p.near||!p.near.length) return '';
+  const inner=p.near.map(a=>
+    '<li>'+nearThumb(a)+'<div><div class="nameline"><b>'+esc(a.n)+'</b>'+
+    '<span class="jp">'+esc(a.jp)+'</span></div>'+
+    '<div class="metaline"><span class="w">'+esc(a.w)+'</span> · '+esc(a.note)+'</div></div></li>').join('');
+  return '<details class="alts"><summary>'+p.near.length+' places within reach</summary><ul>'+inner+'</ul></details>';
+}
+
+function renderDays(plan){
+  const host=document.getElementById('daysHost');
+  host.innerHTML=plan.map((day,di)=>{
+    const col=DAYCOL[di%DAYCOL.length];
+    const title=day.kind==='trip'
+      ? 'Day trip to '+TRIP_LABELS[day.region]
+      : (day.stops.length?dominantArea(day.stops):'Open day');
+    const jp=day.kind==='trip'?TRIP_JP[day.region]:'';
+    const header='<div class="dayhead"><div class="daynum" style="background:'+col+'">'+(di+1)+'</div>'+
+      '<h3>'+esc(title)+(jp?'<span class="jpname">'+esc(jp)+'</span>':'')+'</h3>'+
+      '<div class="daymeta">'+fmt(day.depart)+'–'+fmt(day.lastStop)+' · '+yen(day.fares)+' transit</div>'+
+      '<button class="addstop" data-open-add="'+di+'">+ Add a stop</button></div>';
+
+    if(!day.stops.length){
+      return '<div class="panel day">'+header+'<div class="empty">No stops selected for this day. Add an interest or a day trip.</div></div>';
+    }
+
+    const rows=day.items.map(it=>{
+      if(it.kind==='lunch')
+        return '<li><div class="t">'+fmt(it.start)+'</div><div><div class="stopname meal">Lunch <span class="jp" style="font-style:normal">昼食</span></div>'+
+          '<div class="blurb">Allow 55 minutes. A set lunch runs ¥900–1,500 in Tenjin or Hakata; arcade counters are the cheapest.</div></div></li>';
+      if(it.kind==='dinner')
+        return '<li><div class="t">'+fmt(it.start)+'</div><div><div class="stopname meal">Dinner <span class="jp" style="font-style:normal">夕食</span></div>'+
+          '<div class="blurb">'+dinnerText(day)+'</div></div></li>';
+
+      const p=it.poi, leg=it.leg;
+      let legHtml='';
+      if(leg){
+        legHtml='<div class="leg"><b>'+esc(leg.mode)+'</b><span>'+mins(leg.min)+'</span>'+
+          '<span>'+(leg.fare?yen(leg.fare):'free')+'</span>'+
+          (leg.detail?'<span class="src">'+esc(leg.detail)+'</span>':'')+'</div>'+
+          (leg.note?'<div class="tip">'+esc(leg.note)+'</div>':'');
+      }
+      const meta=mins(p.dwell)+' · '+(p.fee?yen(p.fee)+' entry':'free entry');
+      const tip=p.tip?'<div class="tip">'+esc(p.tip)+'</div>':'';
+      return '<li><div class="t">'+fmt(it.start)+'</div><div class="stopbody">'+stopPhoto(p)+
+        '<div class="stoptext">'+
+        '<div class="stopname">'+esc(p.name)+'<span class="jp">'+esc(p.jp)+'</span>'+
+        '<span class="tag">'+catLabel(p.cats[0])+'</span>'+
+        '<button class="rm" data-remove="'+p.id+'" title="Remove this stop">×</button></div>'+
+        '<div class="blurb">'+esc(p.blurb)+'</div>'+
+        legHtml+
+        '<div class="blurb" style="margin-top:6px;color:#9d9082">'+meta+'</div>'+
+        tip+altList(p)+'</div></div></li>';
+    }).join('');
+
+    const slack=slackFor(day,plan);
+    const extra=slack?'<div class="extra"><b>'+Math.floor(slack.slack/60)+' h '+(slack.slack%60)+' min of slack</b> before dinner — '+
+      esc(slack.from.name)+' has these within reach: '+
+      slack.options.map(o=>esc(o.p.name)+' <span class="jp">'+esc(o.p.jp)+'</span> ('+mins(o.km/4.4*60)+' walk)').join(' · ')+
+      '. Add one if the day runs ahead of schedule.</div>':'';
+
+    return '<div class="panel day">'+header+'<ul class="tl">'+rows+'</ul>'+extra+'</div>';
+  }).join('');
+}
+
+function dinnerText(day){
+  if(day.kind==='trip') return 'Back in the city. The yatai along the Naka River in Nakasu are the classic ending — cash only, budget ¥3,000 per person.';
+  return 'Nakasu yatai along the river (cash only, about ¥3,000 per person), or a ramen counter in Tenjin for a fraction of that.';
+}
+function dominantArea(stops){
+  const count={};
+  stops.forEach(p=>count[p.area]=(count[p.area]||0)+1);
+  const top=Object.entries(count).sort((a,b)=>b[1]-a[1])[0][0];
+  return ({hakata:'Hakata old town · 博多旧市街',tenjin:'Tenjin & downtown · 天神',nakasu:'Nakasu & the river · 中洲',
+    ohori:'Ohori Park & castle · 大濠公園',momochi:'Momochi seaside · ももち',bay:'The bay · 博多湾'})[top]||'City day';
+}
+
+function renderBudget(plan){
+  const transit=plan.reduce((s,d)=>s+d.fares,0);
+  const entries=plan.reduce((s,d)=>s+d.admissions,0);
+  const meals=plan.length*1800;
+  const total=transit+entries+meals;
+  const stops=plan.reduce((s,d)=>s+d.stops.length,0);
+  const walkKm=plan.reduce((s,d)=>s+d.distance,0);
+  const sub=plan.reduce((s,d)=>s+d.spend.subway,0);
+  const bus=plan.reduce((s,d)=>s+d.spend.bus,0);
+  const rail=plan.reduce((s,d)=>s+d.spend.jr,0);
+
+  document.getElementById('budgetCard').innerHTML=
+    '<h3>Cost estimate <span style="font-weight:400;color:#9d9082;font-size:12px">費用</span></h3>'+
+    '<div class="money">'+yen(total)+' <small>per person · '+plan.length+' day'+(plan.length>1?'s':'')+' · '+yen(Math.round(total/plan.length))+'/day</small></div>'+
+    '<ul class="rows">'+
+      '<li><span class="k">Transit total <span class="jp">交通費</span></span><span class="v">'+yen(transit)+'</span></li>'+
+      (sub?'<li><span class="k">— Subway</span><span class="v">'+yen(sub)+'</span></li>':'')+
+      (bus?'<li><span class="k">— City bus</span><span class="v">'+yen(bus)+'</span></li>':'')+
+      (rail?'<li><span class="k">— Rail &amp; day trips</span><span class="v">'+yen(rail)+'</span></li>':'')+
+      '<li><span class="k">Entry fees <span class="jp">入場料</span></span><span class="v">'+yen(entries)+'</span></li>'+
+      '<li><span class="k">Meals, ¥1,800/day <span class="jp">食費</span></span><span class="v">'+yen(meals)+'</span></li>'+
+      '<li><span class="k">Walking in the plan</span><span class="v">'+walkKm.toFixed(1)+' km</span></li>'+
+    '</ul>'+
+    '<div class="verdict">'+baseVerdict(plan)+'</div>';
+}
+
+function baseVerdict(plan){
+  const firsts=plan.filter(d=>d.stops.length).map(d=>d.stops[0]);
+  if(!firsts.length) return 'Select a few sights and the base comparison will appear here.';
+  const other=state.base==='hakata'?'tenjin':'hakata';
+  const sum=b=>firsts.reduce((s,p)=>s+travel(HOME[b],p,b).min,0);
+  const mine=sum(state.base), theirs=sum(other);
+  if(theirs+8<mine)
+    return '<b>Base check.</b> Staying in '+BASE_LABEL[other]+' would cut about '+(mine-theirs)+' min of travel from the first stop each day.';
+  return '<b>Base check.</b> '+BASE_LABEL[state.base]+' is the better base for this plan; '+BASE_LABEL[other]+
+    ' would add about '+Math.max(0,mine-theirs)+' min per day.';
+}
+
+/* how much of a given day's travel a pass actually covers */
+function dayCover(day,kind){
+  const s=day.spend.subway, b=day.spend.bus, j=day.spend.jr;
+  if(kind==='subway') return s;
+  if(kind==='bus') return b;
+  if(kind==='city') return s+b+(day.region==='sasaguri'?j:0);
+  if(kind==='citydaz') return s+b+((day.region==='dazaifu'||day.region==='sasaguri')?j:0);
+  return 0;
+}
+
+function renderPass(plan){
+  const transit=plan.reduce((s,d)=>s+d.fares,0);
+  const defs=[
+    {name:'Subway 1-day pass',unit:640,kind:'subway',note:'¥640 per day, all three subway lines'},
+    {name:'Nishitetsu bus 1-day pass',unit:1200,kind:'bus',note:'¥1,200 per day, city buses'},
+    {name:'Tourist City Pass',unit:2500,kind:'city',note:'Subway, city buses, JR and Nishitetsu inside the city'},
+    {name:'Tourist City Pass + Dazaifu',unit:2800,kind:'citydaz',note:'Adds Nishitetsu to Dazaifu; excludes the Tabito bus'}
+  ];
+  const products=defs.map(p=>{
+    const perDay=plan.map(d=>dayCover(d,p.kind));
+    const covered=perDay.reduce((a,b)=>a+b,0);
+    const saving=perDay.reduce((a,c)=>a+Math.max(0,c-p.unit),0);
+    return {name:p.name,note:p.note,unit:p.unit,covered,saving};
+  });
+  const best=products.slice().sort((a,b)=>b.saving-a.saving)[0];
+
+  const rows=products.map(p=>
+    '<tr><td>'+esc(p.name)+'<br><span style="color:#9d9082;font-size:11.5px">'+esc(p.note)+'</span></td>'+
+    '<td class="num">'+yen(p.unit)+'</td>'+
+    '<td class="num '+(p.saving>0?'good':'bad')+'">'+(p.saving>0?'+'+yen(p.saving):'—')+'</td></tr>').join('');
+
+  const verdict = best.saving>0
+    ? '<div class="verdict"><b>Best value: the '+esc(best.name)+'.</b> On the days it covers, it comes out about '+yen(best.saving)+
+      ' ahead of paying per ride. Buy it only on those days.</div>'
+    : '<div class="verdict warn"><b>No pass pays off on this plan.</b> Every product costs more than the travel it would cover. '+
+      'Pay per ride with an IC card.</div>';
+
+  document.getElementById('passCard').innerHTML=
+    '<h3>Pass comparison <span style="font-weight:400;color:#9d9082;font-size:12px">乗車券</span></h3>'+
+    '<div class="money">'+yen(transit)+' <small>transit, pay-as-you-go</small></div>'+
+    '<table class="ptable"><thead><tr><th>Product</th><th class="num">Per day</th><th class="num">Best-case saving</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    verdict+
+    '<div class="verdict note">IC cards (Hayakaken, Suica, ICOCA) work on the subway, JR, Nishitetsu trains and every city bus.</div>';
+}
+
+function renderTips(plan){
+  const regions=plan.filter(d=>d.kind==='trip').map(d=>d.region);
+  const items=[];
+  items.push('<li><b>The airport has two terminals, two answers.</b> Domestic arrivals ride the subway to Hakata for ¥260 in five minutes. International arrivals have no station: take the free shuttle to the domestic side, or the bus from stop 6/7 to Hakata for ¥400 (¥380 by IC).</li>');
+  items.push('<li><b>City buses are a flat ¥150</b> inside the central zone between Hakata, Tenjin, Yakuin and Canal City <span class="jp">(福岡都心150円均一)</span>. Pay on exit with IC or exact change.</li>');
+  items.push('<li><b>No ¥10,000 notes on buses.</b> Drivers cannot make change for them. Break notes at a convenience store first.</li>');
+  items.push('<li><b>One IC card covers everything</b> — subway, JR, Nishitetsu and buses. Top up at any station machine.</li>');
+  if(regions.includes('dazaifu'))
+    items.push('<li><b>Dazaifu:</b> Nishitetsu from Tenjin is ¥480 since April 2026 (it was ¥420 before). The Tabito Liner bus from Hakata is ¥800 cash or ¥780 by IC, and the Tourist City Pass does not cover it.</li>');
+  if(regions.includes('itoshima'))
+    items.push('<li><b>Itoshima:</b> coastal buses are infrequent after Maebaru. Note the last departure back before you commit to a sunset.</li>');
+  if(regions.includes('yanagawa'))
+    items.push('<li><b>Yanagawa:</b> the boat dock sits five minutes from Nishitetsu-Yanagawa station. Weekends sell out; go on the first boat.</li>');
+  if(regions.includes('karatsu'))
+    items.push('<li><b>Karatsu:</b> ninety minutes each way. Confirm the return train before lunch, because the coastal line thins out in the afternoon.</li>');
+  items.push('<li><b>Yatai are cash only</b>, and most stalls expect each guest to order a drink. Budget ¥3,000 per person.</li>');
+  items.push('<li><b>Fukuoka is compact.</b> Tenjin to Hakata is about 25 minutes on foot; anything under 1.2 km is routed as a walk rather than a one-stop subway ride.</li>');
+
+  document.getElementById('tipsCard').innerHTML=
+    '<h3>Local notes <span style="font-weight:400;color:#9d9082;font-size:12px">現地の注意</span></h3><ul class="tips">'+items.join('')+'</ul>';
+}
+
+function renderSources(){
+  const list=Object.values(SOURCES).map(s=>
+    '<li>'+esc(s.label)+' — <a href="'+s.url+'" target="_blank" rel="noopener">'+s.url.replace(/^https?:\/\//,'')+'</a> <span style="color:#8a7f73">('+s.date+')</span></li>').join('');
+  document.getElementById('sourceCard').innerHTML=
+    '<h4>Data sources and method</h4>'+
+    '<ul>'+list+'</ul>'+
+    '<p style="margin-top:8px">Map tiles and place names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, rendered with Leaflet. '+
+    'Photographs: Wikimedia Commons, freely licensed; credits are on each file page. '+
+    'Fares reflect the published tables as of November 2026, including the 1 April 2026 Nishitetsu revision. '+
+    'Journey times are modelled from straight-line distance and published timetables for planning, not ticketing.</p>';
+}
+
+function renderLegend(plan){
+  document.getElementById('legend').innerHTML=plan.map((d,i)=>
+    '<span><i style="background:'+DAYCOL[i%DAYCOL.length]+'"></i>Day '+(i+1)+
+    (d.kind==='trip'?' · '+esc(TRIP_LABELS[d.region]):'')+'</span>').join('')+
+    '<span><i style="background:#f2ebdf"></i>Your base</span>'+
+    '<span style="flex-basis:100%;font-size:11px;color:#8a7f73">Streets you will walk: '+
+    STREETS.map(s=>s.jp+' '+s.en).join(' · ')+'</span>';
+}
+
+function renderControls(){
+  document.querySelectorAll('#daysSeg button').forEach(b=>
+    b.setAttribute('aria-pressed',String(Number(b.dataset.days)===state.days)));
+  document.querySelectorAll('#baseSeg button').forEach(b=>
+    b.setAttribute('aria-pressed',String(b.dataset.base===state.base)));
+
+  document.getElementById('interestChips').innerHTML=INTERESTS.map(i=>
+    '<button class="chip" data-interest="'+i.key+'" aria-pressed="'+state.interests.has(i.key)+'">'+
+    esc(i.label)+'<span class="jp">'+i.jp+'</span></button>').join('');
+
+  document.getElementById('tripChips').innerHTML=TRIP_REGIONS.map(r=>
+    '<button class="chip" data-trip="'+r+'" aria-pressed="'+state.trips.has(r)+'">'+
+    TRIP_LABELS[r]+'<span class="jp">'+TRIP_JP[r]+'</span></button>').join('');
+}
+
+/* ---------- floating “add a stop” chooser ---------- */
+let panelDay=0,panelCat='all';
+const PANEL_CATS=[['all','Everything'],['temple','Temples'],['food','Food'],['nature','Nature'],
+  ['view','Views'],['art','Museums'],['market','Markets'],['shopping','Shopping']];
+
+/* recommended = cheap to reach + close + worth the trip + fits the brief */
+function recScore(leg,p){
+  let s=0;
+  s+= leg.fare===0?4:leg.fare<=210?3:leg.fare<=340?1.5:0;   /* fare */
+  s+= leg.min<=10?3:leg.min<=18?2:leg.min<=30?1:0;         /* closeness */
+  s+= p.must?3:0;                                           /* the draw */
+  s+= p.cats.some(c=>state.interests.has(c))?2:0;            /* fits the brief */
+  s+= p.fee?0:1;                                            /* free entry */
+  s+= leg.dist&&leg.dist<1?1.5:0;                            /* walkable */
+  return s;
+}
+function optPhoto(p){
+  return '<img src="img/'+p.id+'.jpg" alt="'+esc(p.name)+'" loading="lazy">';
+}
+function renderPanel(plan){
+  const days=plan&&plan.length?plan:buildPlan();
+  panelDay=Math.max(0,Math.min(panelDay,days.length-1));
+  const day=days[panelDay]||{stops:[],fares:0};
+  const inDay=new Set(day.stops.map(p=>p.id));
+  const prev=day.stops.length?day.stops[day.stops.length-1]:HOME[state.base];
+
+  document.getElementById('sheetTabs').innerHTML=days.map((d,i)=>
+    '<button class="sheet-tab" data-pday="'+i+'" aria-pressed="'+(i===panelDay)+'">Day '+(i+1)+
+    (d.kind==='trip'?' · '+esc(TRIP_LABELS[d.region]):'')+'</button>').join('');
+  document.getElementById('sheetCats').innerHTML=PANEL_CATS.map(([k,l])=>
+    '<button class="sheet-tab" data-pcat="'+k+'" aria-pressed="'+(panelCat===k)+'">'+l+'</button>').join('');
+  document.getElementById('sheetSub').textContent='Day '+(panelDay+1)+' · after '+prev.name+
+    ' · '+day.stops.length+' stops · '+yen(day.fares)+' transit so far';
+
+  const rows=POIS.filter(p=>!inDay.has(p.id))
+    .filter(p=>panelCat==='all'||p.cats.includes(panelCat))
+    .map(p=>{const leg=travel(prev,p,state.base);return {p,leg,score:recScore(leg,p)};})
+    .sort((a,b)=>b.score-a.score);
+
+  /* the badge marks the five best options right now — cheapest to reach,
+     closest, and the strongest draw of the list */
+  const recCount=rows.length>=8?5:rows.length>=4?3:1;
+  document.getElementById('sheetList').innerHTML=rows.length?rows.map((o,idx)=>{
+    const p=o.p,leg=o.leg,dist=leg.dist?leg.dist.toFixed(1)+' km · ':'';
+    return '<div class="opt">'+optPhoto(p)+'<div>'+
+      '<h4>'+esc(p.name)+'<span class="jp">'+esc(p.jp)+'</span>'+
+      (idx<recCount?'<span class="rec">Recommended</span>':'')+'</h4>'+
+      '<div class="bl">'+esc(p.blurb)+'</div>'+
+      '<div class="legline">From '+esc(prev.name)+': <b>'+esc(leg.mode)+'</b> · '+mins(leg.min)+' · '+
+      (leg.fare?yen(leg.fare):'free')+' · '+dist+(p.fee?yen(p.fee)+' entry':'free entry')+
+      ' · '+mins(p.dwell)+' there</div></div>'+
+      '<button class="addto" data-add="'+p.id+'">+ Add</button></div>';
+  }).join(''):'<div class="sheet-empty">Nothing left in this category. Try another filter or day.</div>';
+}
+function openPanel(dayIdx){
+  panelDay=Math.max(0,Math.min(dayIdx,state.days-1));
+  const m=document.getElementById('addModal');
+  m.classList.add('open'); m.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  renderPanel(buildPlan());
+}
+function closePanel(){
+  const m=document.getElementById('addModal');
+  m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+
+document.getElementById('addModal').addEventListener('click',e=>{
+  if(e.target.closest('[data-close]')){ closePanel(); return; }
+  const tab=e.target.closest('[data-pday]');
+  if(tab){ panelDay=Number(tab.dataset.pday); renderPanel(buildPlan()); return; }
+  const cat=e.target.closest('[data-pcat]');
+  if(cat){ panelCat=cat.dataset.pcat; renderPanel(buildPlan()); return; }
+  const add=e.target.closest('[data-add]');
+  if(add){
+    state.added.push({id:add.dataset.add,day:panelDay});
+    closePanel(); render();
+  }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePanel(); });
+
+function render(){
+  const plan=buildPlan();
+  renderControls();
+  drawMap(plan);
+  renderMapChips(plan);
+  renderLegend(plan);
+  renderDays(plan);
+  renderBudget(plan);
+  renderPass(plan);
+  renderTips(plan);
+  renderSources();
+}
+
+/* ---------- events ---------- */
+document.getElementById('daysSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.days=Number(b.dataset.days);
+  if(state.trips.size>state.days-1) state.trips=new Set([...state.trips].slice(0,Math.max(0,state.days-1)));
+  render();
+});
+document.getElementById('baseSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  state.base=b.dataset.base; render();
+});
+document.getElementById('interestChips').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const k=b.dataset.interest;
+  state.interests.has(k)?state.interests.delete(k):state.interests.add(k);
+  render();
+});
+document.getElementById('tripChips').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const k=b.dataset.trip;
+  if(state.trips.has(k)) state.trips.delete(k);
+  else{
+    if(state.trips.size>=Math.max(0,state.days-1)) state.trips.delete([...state.trips][0]);
+    state.trips.add(k);
+  }
+  render();
+});
+document.getElementById('daysHost').addEventListener('click',e=>{
+  const open=e.target.closest('[data-open-add]');
+  if(open){ openPanel(Number(open.dataset.openAdd)); return; }
+  const b=e.target.closest('[data-remove]'); if(!b) return;
+  state.excluded.add(b.dataset.remove);
+  state.added=state.added.filter(a=>a.id!==b.dataset.remove);
+  render();
+});
+document.getElementById('mapScope').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  MAPSCOPE=b.dataset.scope; render();
+});
+document.getElementById('optimizeBtn').addEventListener('click',()=>{
+  render();
+  const el=document.getElementById('map');
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  state.days=2; state.base='hakata';
+  state.interests=new Set(['temple','food']);
+  state.trips=new Set(['dazaifu']);
+  state.excluded=new Set();
+  state.added=[];
+  render();
+});
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+
+render();
+</script>
+</body>
+</html>

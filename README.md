@@ -1,6 +1,6 @@
 # Fukuoka Itinerary Planner
 
-A first-timer's planner for Fukuoka, Japan: pick your interests, trip length and base, and it builds an hour-by-hour day plan with real 2026 fares, a cost breakdown and a pass comparison.
+A first-timer's trip planner for Fukuoka, Japan: pick your interests, trip length and base, and it builds an hour-by-hour day plan with real 2026 fares, a cost breakdown and a pass comparison.
 
 **Live site:** https://fukuoka-itinerary-planner-qdu9p3.freebuff.site
 
@@ -15,6 +15,6 @@ A first-timer's planner for Fukuoka, Japan: pick your interests, trip length and
 ## Files
 
 - `index.html` - the whole app (HTML, CSS and JavaScript in one file)
-- `README.md` - this file
+- `img/` - the photographs used by the page, one per place
 
-The photographs are served from the live site and are referenced by absolute URL in `index.html`, so the page works on its own when opened from this repository.
+Open `index.html` in a browser to run it locally. No build step and no API keys.
