@@ -1127,6 +1127,17 @@ function openDayMenu(btn){
   document.body.appendChild(el);
   el.style.width = 'min(340px, calc(100vw - 36px))';
   el.style.maxHeight = Math.min(460, window.innerHeight - 90) + 'px';
+
+  /* sit right under the day box, right edges lined up, kept inside the screen */
+  const r = btn.getBoundingClientRect();
+  const w = el.offsetWidth, h = el.offsetHeight, gap = 8, edge = 10;
+  let left = r.right - w;
+  if(left < edge) left = Math.min(r.left, window.innerWidth - w - edge);
+  left = Math.max(edge, Math.min(left, window.innerWidth - w - edge));
+  let top = r.bottom + gap;
+  if(top + h > window.innerHeight - edge) top = Math.max(edge, r.top - h - gap);
+  el.style.left = Math.round(left) + 'px';
+  el.style.top = Math.round(top) + 'px';
   el.addEventListener('click', e => {
     const opt = e.target.closest('[data-daymove]');
     if(!opt) return;
