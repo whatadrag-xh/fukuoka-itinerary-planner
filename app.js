@@ -24,7 +24,7 @@ const state = {
   days: 3,
   hotelId: 'nikko',
   interests: new Set(['temple','food']),
-  trips: new Set(['dazaifu']),
+  trips: new Set(),
   plan: [],
   scale: 1,
   hotelQuery: '',
@@ -241,6 +241,121 @@ function osmToPOI(it){
 }
 
 /* ============================================================
+   WIKIPEDIA SIGHTS — free, keyless, CORS-enabled
+   ------------------------------------------------------------
+   The curated list can never hold every sight in Kyushu, so the
+   add-a-stop sheet also asks Wikipedia what is listed around the
+   day's anchor point. No key, no account, failures stay quiet.
+   ============================================================ */
+const WIKI = {key:'', status:'idle', items:[], seq:0};
+const WIKI_SKIP = /^(List of|Timeline of|Category:|Portal:|File:|Template:|Geography of|History of)|disambiguation/i;
+const WIKI_ADMIN = /\bis (a|an|the) (ward|city|prefecture|subprefecture|district|municipality|neighbourhood|neighborhood|town|village) of\b/i;
+
+function wikiAnchor(day){
+  if(!day) return hotel();
+  const first = day.items.map(i => (i.type === 'stop' ? POI[i.id] : null)).filter(Boolean)[0];
+  if(first) return first;
+  if(day.kind === 'trip'){
+    const pool = POIS.filter(q => q.area === day.region && q.lat != null);
+    if(pool.length){
+      return {
+        lat: pool.reduce((s,q) => s + q.lat, 0) / pool.length,
+        lon: pool.reduce((s,q) => s + q.lon, 0) / pool.length,
+        area: day.region,
+        name: TRIP_LABELS[day.region]
+      };
+    }
+  }
+  return hotel();
+}
+
+function areaNear(lat, lon){
+  let best = null, bd = Infinity;
+  POIS.forEach(p => {
+    if(p.lat == null || p.lon == null) return;
+    const d = haversine({lat, lon}, p);
+    if(d < bd){ bd = d; best = p.area; }
+  });
+  return (best && bd < 40) ? best : nearestArea(lat, lon);
+}
+
+function wikiSearch(anchor){
+  const key = anchor.lat.toFixed(2) + ',' + anchor.lon.toFixed(2);
+  if(WIKI.key === key) return;
+  WIKI.key = key; WIKI.status = 'loading'; WIKI.items = []; WIKI.seq += 1;
+  const seq = WIKI.seq;
+  const url = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*' +
+    '&generator=geosearch&ggscoord=' + anchor.lat + '|' + anchor.lon +
+    '&ggsradius=10000&ggslimit=20' +
+    '&prop=coordinates|pageimages|extracts&exintro=1&explaintext=1&exchars=180' +
+    '&piprop=thumbnail&pithumbsize=280';
+  fetch(url)
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      if(seq !== WIKI.seq) return;
+      const pages = (data.query && data.query.pages) ? Object.values(data.query.pages) : [];
+      const known = new Set(POIS.map(p => p.name.toLowerCase()));
+      WIKI.items = pages
+        .map(pg => {
+          const c = pg.coordinates && pg.coordinates[0];
+          if(!c || !pg.title) return null;
+          return {
+            pageid: pg.pageid, title: pg.title, lat: c.lat, lon: c.lon,
+            extract: (pg.extract || '').replace(/\s+/g, ' ').trim(),
+            thumb: pg.thumbnail ? pg.thumbnail.source : null,
+            url: 'https://en.wikipedia.org/?curid=' + pg.pageid
+          };
+        })
+        .filter(Boolean)
+        .filter(x => !known.has(x.title.toLowerCase()) && !WIKI_SKIP.test(x.title) && !WIKI_ADMIN.test(x.extract.slice(0, 110)))
+        .slice(0, 8);
+      WIKI.status = WIKI.items.length ? 'done' : 'empty';
+      if($('#addModal').classList.contains('open')) renderPanel();
+    })
+    .catch(() => {
+      if(seq !== WIKI.seq) return;
+      WIKI.status = 'error';
+      if($('#addModal').classList.contains('open')) renderPanel();
+    });
+}
+
+function wikiHtml(day){
+  const anchor = wikiAnchor(day);
+  wikiSearch(anchor);
+  const head = '<div class="osmhead"><b>Sights around ' + esc(anchor.name || 'your day') + '</b><span>Wikipedia</span></div>';
+  if(WIKI.status === 'loading'){
+    return '<div class="osmblock wikiblock">' + head + '<p class="osmnote">Reading Wikipedia’s list of sights nearby…</p></div>';
+  }
+  if(!WIKI.items.length) return '';
+  const rows = WIKI.items.map((it, i) => {
+    const leg = travel(anchor, {lat:it.lat, lon:it.lon, area:areaNear(it.lat, it.lon)}, hotel().hub);
+    return '<div class="opt wikiopt">' +
+      '<img src="' + (it.thumb || 'img/place-unknown.svg') + '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
+      '<div><h4>' + esc(it.title) + '<span class="osmflag">Wiki</span></h4>' +
+        '<div class="bl">' + esc(it.extract || 'A sight Wikipedia lists near this part of the trip.') + '</div>' +
+        '<div class="legline">' + (leg.dist ? leg.dist.toFixed(1) + ' km · ' : '') +
+          '<b>' + esc(leg.mode) + '</b> · ' + mins(leg.min) + ' · ' +
+          (leg.fare ? yen(leg.fare) + ' est.' : 'free') + '</div>' +
+      '</div>' +
+      '<button class="addto" data-addwiki="' + i + '">+ Add</button></div>';
+  }).join('');
+  return '<div class="osmblock wikiblock">' + head + rows + '</div>';
+}
+
+function wikiToPOI(it){
+  const id = 'wiki-' + it.pageid;
+  if(POI[id]) return id;
+  POI[id] = {
+    id, name: it.title, jp: '', area: areaNear(it.lat, it.lon), cats: ['view'],
+    lat: it.lat, lon: it.lon, dwell: 60, fee: 0,
+    blurb: it.extract || 'A sight listed on Wikipedia near this part of the trip.',
+    tip: 'Opening hours and prices are not listed here — check before you go.',
+    photo: it.thumb || 'img/place-unknown.svg', wiki: true, wikiUrl: it.url
+  };
+  return id;
+}
+
+/* ============================================================
    PLAN GENERATION
    ============================================================ */
 function scoreOf(p){
@@ -259,8 +374,10 @@ function cityPool(){
 /* every day is built the same way: breakfast, places, lunch,
    places, tea, places, dinner — then the traveller can move anything */
 function makeDay(index, spec){
+  /* a day trip holds four stops at most — more than that and the
+     day stops being a day and becomes a checklist */
   const stops = spec.kind === 'trip'
-    ? orderStops(POIS.filter(p => p.area === spec.region))
+    ? orderStops(POIS.filter(p => p.area === spec.region)).slice(0, 4)
     : (spec.stops || []);
   const n = stops.length;
   const m = Math.max(1, Math.ceil(n * 0.4));
@@ -435,10 +552,21 @@ function timeBtn(value, attrs, label){
     '<span>' + (value || 'off') + '</span></button>';
 }
 
+/* the meal has to be where the day is: on a Hiroshima day the lunch
+   recommendation comes from Hiroshima, not from Tenjin */
+function mealPicks(dayIdx, key){
+  const day = state.plan[dayIdx];
+  if(day && day.kind === 'trip' && key !== 'breakfast'){
+    const local = EAT_TRIP.filter(e => e.area === day.region && e.meal === key);
+    if(local.length) return local;
+  }
+  return EAT.filter(e => e.meal === key);
+}
+
 function mealRow(r, dayIdx){
   const off = r.off ? ' off' : '';
   const tval = r.off ? '' : fmt(r.start);
-  const picks = EAT.filter(e => e.meal === r.key);
+  const picks = mealPicks(dayIdx, r.key);
   const pick = (!r.off && picks.length) ? picks[dayIdx % picks.length] : null;
   return '<li class="row mealrow' + off + '" draggable="true" data-day="' + dayIdx + '" data-idx="' + r.idx + '">' +
     '<div class="rowgrip" title="Drag to move">⠿</div>' +
@@ -493,7 +621,7 @@ function stopRow(r, dayIdx){
     '<div class="stopbody">' +
       '<button class="phbtn" data-detail="' + p.id + '" aria-label="Open details for ' + esc(p.name) + '">' +
         '<img class="ph" src="' + photoOf(p) + '" alt="' + esc(p.name) + '" loading="lazy">' +
-        '<span class="phzoom">Expand</span></button>' +
+      '</button>' +
       '<div class="stoptext">' +
         '<div class="stopname">' + esc(p.name) + '<span class="jp">' + esc(p.jp) + '</span>' +
           '<span class="tag">' + catLabel(p.cats[0]) + '</span></div>' +
@@ -781,6 +909,8 @@ function renderSources(){
     '<h4>Data sources and method</h4><ul>' + list + '</ul>' +
     '<p>Map tiles and place names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, rendered with Leaflet. ' +
     'Live place search: <a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> over OpenStreetMap data — free, keyless, and it covers every hotel, restaurant, shop and mall in the city, not just our shortlist. ' +
+    'More sights: <a href="https://www.mediawiki.org/wiki/API:Geosearch" target="_blank" rel="noopener">Wikipedia’s geosearch API</a>, also free and keyless, lists everything Wikipedia has an article for around the day you are planning — CC BY-SA. ' +
+    'Our own list of 84 places is cross-checked against the Fukuoka City and Fukuoka Prefecture tourist guides, Japan Guide and Wikivoyage, so it holds what people actually recommend rather than whatever the data happens to contain. ' +
     'Photographs: Wikimedia Commons, freely licensed. Hotel prices are typical 2026 guide rates for a double, not live availability. ' +
     'Fares reflect the published tables as of November 2026, including the 1 April 2026 Nishitetsu revision. Journey times are modelled from distance and published timetables for planning, not ticketing.</p>';
 }
@@ -834,13 +964,13 @@ function galleryFor(p){
 
 function renderDetail(type, id){
   const isEat = type === 'eat';
-  const item = isEat ? EAT_BY[id] : POI[id];
+  const item = isEat ? (EAT_BY[id] || EAT_TRIP_BY[id]) : POI[id];
   if(!item) return;
   const d = isEat ? item : (DETAIL[id] || {});
   const img = isEat ? 'img/' + item.img + '.jpg' : photoOf(item);
   const area = AREA_NAME[item.area] || item.area;
   const cats = isEat ? ['food'] : item.cats;
-  const gallery = item.osm ? [] : galleryFor(item);
+  const gallery = (item.osm || item.wiki) ? [] : galleryFor(item);
 
   const chips = [
     '<span class="dchip">' + (isEat ? MEAL_LABEL[item.meal] : catLabel(cats[0])) + '</span>',
@@ -860,6 +990,10 @@ function renderDetail(type, id){
     ? '<div class="dnote"><b>Live listing.</b> Found through OpenStreetMap, so we have its name, type and position but not its opening hours. ' +
       '<a href="' + item.osmUrl + '" target="_blank" rel="noopener">OpenStreetMap</a> · ' +
       '<a href="' + mapsSearch(item.lat + ',' + item.lon) + '" target="_blank" rel="noopener">Google Maps</a></div>'
+    : item.wiki
+    ? '<div class="dnote"><b>From Wikipedia.</b> Name, position and summary come from Wikipedia; opening hours and prices are not included. ' +
+      '<a href="' + item.wikiUrl + '" target="_blank" rel="noopener">Read the article</a> · ' +
+      '<a href="' + mapsSearch(item.lat + ',' + item.lon) + '" target="_blank" rel="noopener">Google Maps</a></div>'
     : '';
 
   $('#detailBody').innerHTML =
@@ -878,10 +1012,12 @@ function renderDetail(type, id){
       (gallery.length ? '<div class="dsection"><h4>More around ' + esc(area) + '</h4>' +
         '<div class="dgallery">' + gallery.map(q =>
           '<button class="dgtile" data-detail="' + q.id + '">' +
-            '<img src="img/' + q.id + '.jpg" alt="' + esc(q.name) + '" loading="lazy">' +
+            '<img src="' + photoOf(q) + '" alt="' + esc(q.name) + '" loading="lazy">' +
             '<span>' + esc(q.name) + '<em>' + esc(q.jp) + '</em></span></button>').join('') +
         '</div></div>' : '') +
-      '<p class="dsource">' + (item.osm ? 'Position and type: OpenStreetMap contributors.' : 'Photographs: Wikimedia Commons.') + '</p>' +
+      '<p class="dsource">' + (item.osm ? 'Position and type: OpenStreetMap contributors.'
+        : item.wiki ? 'Text and photograph: Wikipedia contributors, CC BY-SA.'
+        : 'Photographs: Wikimedia Commons.') + '</p>' +
     '</div>';
 
   const scroll = $('#detailBody');
@@ -890,7 +1026,7 @@ function renderDetail(type, id){
 
 function openDetail(ref){
   const [type, id] = ref.indexOf('eat:') === 0 ? ['eat', ref.slice(4)] : ['poi', ref];
-  const ok = type === 'eat' ? !!EAT_BY[id] : !!POI[id];
+  const ok = type === 'eat' ? !!(EAT_BY[id] || EAT_TRIP_BY[id]) : !!POI[id];
   if(!ok) return;
   renderDetail(type, id);
   const m = $('#detailModal');
@@ -981,16 +1117,9 @@ function openTimePicker(btn){
     }).join('') + '</div>';
   document.body.appendChild(el);
 
-  const r = btn.getBoundingClientRect();
-  const w = 238;
-  el.style.width = w + 'px';
-  el.style.left = Math.max(10, Math.min(r.left, window.innerWidth - w - 10)) + 'px';
-  const room = window.innerHeight - r.bottom - 20;
-  const above = room < 260 && r.top > room;
-  el.style.maxHeight = Math.min(360, Math.max(200, above ? r.top - 18 : room)) + 'px';
-  el.style.top = above
-    ? Math.max(10, r.top - el.offsetHeight - 8) + 'px'
-    : (r.bottom + 8) + 'px';
+  /* popups open in the middle of the screen, not in a corner */
+  el.style.width = 'min(320px, calc(100vw - 36px))';
+  el.style.maxHeight = Math.min(440, window.innerHeight - 90) + 'px';
 
   el.addEventListener('click', e => {
     const opt = e.target.closest('[data-tval]');
@@ -1005,10 +1134,6 @@ function openTimePicker(btn){
     const list = el.querySelector('.tpop-list');
     list.scrollTop = Math.max(0, chosen.offsetTop - list.clientHeight/2 + chosen.offsetHeight/2);
   }
-  const again = () => { const r2 = btn.getBoundingClientRect();
-    el.style.left = Math.max(10, Math.min(r2.left, window.innerWidth - w - 10)) + 'px';
-    el.style.top = (r2.bottom + 8) + 'px'; };
-  window.addEventListener('resize', again, {once:true});
 }
 
 /* ============================================================
@@ -1072,7 +1197,7 @@ function renderPanel(){
       '</div>' +
       '<button class="addto" data-add="' + p.id + '">+ Add</button></div>';
   }).join('') : '<div class="sheet-empty">Nothing in our guide matches that — the live search below covers the rest of the city.</div>') +
-    livePlaceHtml(from);
+    livePlaceHtml(from) + wikiHtml(day);
 }
 
 function openPanel(dayIdx){
@@ -1233,7 +1358,7 @@ $('#rebuildBtn').addEventListener('click', () => {
 $('#resetBtn').addEventListener('click', () => {
   state.days = 3; state.hotelId = 'nikko';
   state.interests = new Set(['temple','food']);
-  state.trips = new Set(['dazaifu']);
+  state.trips = new Set();
   state.hotelQuery = ''; state.hotelArea = 'all';
   live.hotel.status = 'idle'; live.hotel.items = []; live.hotel.q = '';
   const hs = $('#hotelSearch'); if(hs) hs.value = '';
@@ -1382,6 +1507,11 @@ $('#addModal').addEventListener('click', e => {
   if(addOSM){
     const it = live.place.items[Number(addOSM.dataset.addosm)];
     if(it){ addStop(osmToPOI(it)); return; }
+  }
+  const addWiki = e.target.closest('[data-addwiki]');
+  if(addWiki){
+    const it = WIKI.items[Number(addWiki.dataset.addwiki)];
+    if(it){ addStop(wikiToPOI(it)); return; }
   }
   const add = e.target.closest('[data-add]');
   if(add){ addStop(add.dataset.add); return; }

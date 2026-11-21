@@ -348,7 +348,189 @@ const POIS = [
 
  {id:'kujukushima', name:'Kujukushima Islands', jp:'九十九島', area:'sasebo', cats:['nature'], lat:33.1570, lon:129.7100,
   dwell:120, fee:1500,
-  blurb:'Two hundred wooded islands in the bay — best from a sightseeing boat or the Pearl Sea lookout.'}
+  blurb:'Two hundred wooded islands in the bay — best from a sightseeing boat or the Pearl Sea lookout.'},
+
+ /* ---- Fukuoka city, second layer (guide-book favourites) ---- */
+ {id:'machiya', name:'Hakata Machiya Folk Museum', jp:'博多町家ふるさと館', area:'hakata', cats:['art','shopping'], lat:33.5941, lon:130.4104,
+  dwell:45, fee:200,
+  blurb:'A Meiji-era townhouse and workshop row beside Kushida Shrine: Hakata weaving, dolls and festival crafts made in front of you.',
+  tip:'¥200, closed on the 4th Monday. The shop upstairs sells the dolls you watched being painted.'},
+
+ {id:'jotenji', name:'Jotenji Temple', jp:'承天寺', area:'hakata', cats:['temple'], lat:33.5962, lon:130.4145,
+  dwell:25, fee:0,
+  blurb:'The Zen temple where, by tradition, udon and soba were first made in Japan — a mossy, near-empty compound five minutes from the station.',
+  tip:'Free, and usually you will be the only visitor. The stone gate and the garden behind it are the reason to come.'},
+
+ {id:'reisen', name:'Reisen Park & Korokan', jp:'冷泉公園・鴻臚館跡', area:'nakasu', cats:['nature','art'], lat:33.5932, lon:130.4069,
+  dwell:30, fee:0,
+  blurb:'A small riverside park over the excavated foundations of Korokan, the 7th-century guest house for Chinese and Korean envoys.',
+  tip:'The excavation exhibit under the park is free. Cherry trees here are among the first to open in the city.',
+  photo:'img/reisen-park.jpg'},
+
+ {id:'rakusuien', name:'Rakusuien Garden', jp:'楽水園', area:'hakata', cats:['nature'], lat:33.5866, lon:130.4091,
+  dwell:30, fee:100,
+  blurb:'A pocket garden of ponds and tea rooms built on a merchant’s villa, two minutes from Hakata Station and almost always quiet.',
+  tip:'¥100 including a bowl of matcha on some days. Look for the carp window in the tea house.'},
+
+ {id:'daimyo', name:'Daimyo backstreets', jp:'大名', area:'tenjin', cats:['shopping','food'], lat:33.5883, lon:130.3963,
+  dwell:60, fee:0,
+  blurb:'Fukuoka’s independent quarter: coffee roasters, record shops, vintage clothing and small bars in a grid of back streets behind Tenjin.',
+  tip:'Best between 11:00 and 19:00. The coffee is the local obsession — order a morning set before 11.'},
+
+ {id:'chikagai', name:'Tenjin Chikagai', jp:'天神地下街', area:'tenjin', cats:['shopping','food'], lat:33.5891, lon:130.3991,
+  dwell:45, fee:0,
+  blurb:'An underground street of shops and bakeries under Tenjin, decorated with ironwork and brick — the rain-proof way between the department stores.',
+  tip:'It links Tenjin, Tenjin-Minami and Nishitetsu-Fukuoka stations, so you can cross the whole district without going outside.',
+  photo:'img/tenjin-chikagai.jpg'},
+
+ {id:'porttower', name:'Hakata Port Tower', jp:'博多ポートタワー', area:'bay', cats:['view'], lat:33.6041, lon:130.4027,
+  dwell:30, fee:0,
+  blurb:'A free 70 m observation deck over the ferry terminal and the bay, ten minutes from Hakata Station by bus.',
+  tip:'Free, closed Mondays. The Bayside Place fish market downstairs is where the ferries to the islands leave.',
+  photo:'img/port-tower.jpg'},
+
+ {id:'markis', name:'Mark Is Fukuoka Momochi', jp:'マークイズ福岡ももち', area:'momochi', cats:['shopping','food'], lat:33.5901, lon:130.3582,
+  dwell:60, fee:0,
+  blurb:'The mall beside the PayPay Dome, with a rooftop terrace facing the tower — the easiest rainy-day stop in Seaside Momochi.',
+  tip:'The rooftop and the food floor face the bay. Combine it with the tower and the beach walk.'},
+
+ {id:'marineworld', name:'Marine World Uminonakamichi', jp:'マリンワールド海の中道', area:'bay', cats:['nature'], lat:33.6628, lon:130.3656,
+  dwell:120, fee:2500,
+  blurb:'A seaside aquarium built into the hill, with a tunnel tank of Kyushu’s open-ocean fish and a dolphin show over the bay.',
+  tip:'¥2,500. JR to Uminonakamichi then a 10-minute walk; the park next door is free to enter.',
+  photo:'img/marine-world.jpg'},
+
+ {id:'gokoku', name:'Gokoku Shrine', jp:'福岡縣護国神社', area:'ohori', cats:['temple'], lat:33.5829, lon:130.3849,
+  dwell:25, fee:0,
+  blurb:'A large, sober shrine in the castle park, with a long stone approach and a quiet precinct of old trees.',
+  tip:'Free. Walk out through Maizuru Park to the castle ruins — the cherry tunnel is the city’s best in late March.',
+  photo:'img/gokoku-shrine.jpg'},
+
+ {id:'hakataza', name:'Hakataza Theatre', jp:'博多座', area:'nakasu', cats:['art'], lat:33.5921, lon:130.4036,
+  dwell:90, fee:0,
+  blurb:'The city’s kabuki and musical theatre, on the river in Nakasu, with a single large auditorium and a bento-and-tea interval.',
+  tip:'Tickets sell out months ahead for kabuki. Single-act seats go on sale on the morning.'},
+
+ {id:'station', name:'Hakata Station & ekiben', jp:'博多駅', area:'hakata', cats:['shopping','food'], lat:33.5898, lon:130.4207,
+  dwell:40, fee:0,
+  blurb:'The rail hub and its basement food hall: ekiben, mentaiko, sweets and the city’s densest concentration of lunch counters.',
+  tip:'The ekiben counter on the shinkansen concourse opens at 6:30 — buy before you board for a day trip.',
+  photo:'img/hakata-station.jpg'},
+
+ /* ---- Dazaifu, second layer ---- */
+ {id:'komyozenji', name:'Komyozenji Temple', jp:'光明禅寺', area:'dazaifu', cats:['temple','nature'], lat:33.5192, lon:130.5344,
+  dwell:30, fee:200,
+  blurb:'A Zen temple two minutes behind Tenmangu with two small stone gardens — moss, raked gravel and maples, and almost nobody in them.',
+  tip:'¥200, cash. The rear garden is at its best in November; photography is allowed but keep it quiet.'},
+
+ {id:'starbucks', name:'Starbucks Dazaifu', jp:'スターバックス 太宰府天満宮表参道店', area:'dazaifu', cats:['food'], lat:33.5218, lon:130.5346,
+  dwell:20, fee:0,
+  blurb:'Kengo Kuma’s timber-lattice coffee shop on the shrine approach: 2,000 cedar beams woven through a narrow slot of a building.',
+  tip:'It is a real Starbucks, so the queue moves. Sit at the long counter at the back to see the lattice.'},
+
+ {id:'kaidanin', name:'Kaidan-in', jp:'戒壇院', area:'dazaifu', cats:['temple'], lat:33.5163, lon:130.5328,
+  dwell:20, fee:0,
+  blurb:'The ordination hall of old Dazaifu, with a bronze Buddha cast in 1444 and a courtyard of plum trees.',
+  tip:'Free and usually empty. It is five minutes from Komyozenji, so walk both together.'},
+
+ /* ---- Itoshima, second layer ---- */
+ {id:'keya', name:'Keya no Oto', jp:'芥屋の大門', area:'itoshima', cats:['nature','view'], lat:33.5817, lon:130.0503,
+  dwell:60, fee:0,
+  blurb:'A basalt sea cave on the Itoshima coast, reached by a short sightseeing boat under a cliff of columnar rock.',
+  tip:'The boat runs roughly 09:00–17:00, weather permitting, around ¥1,000. Buses out here are infrequent — check the return time.'},
+
+ {id:'sakurai-shrine', name:'Sakurai Shrine', jp:'櫻井神社', area:'itoshima', cats:['temple'], lat:33.5384, lon:130.1841,
+  dwell:25, fee:0,
+  blurb:'A cedar-shaded shrine on the old road to the coast, with a thatched worship hall and a spring the locals bottle.',
+  tip:'Free. Pair it with Sakurai Futamigaura, ten minutes further towards the sea.'},
+
+ {id:'itoshima-stand', name:'Itoshima farm stands', jp:'糸島の直売所', area:'itoshima', cats:['market','food'], lat:33.5570, lon:130.2050,
+  dwell:40, fee:0,
+  blurb:'Roadside stands along the coastal road selling strawberries, new potatoes, oysters in season and ice cream made that morning.',
+  tip:'Cash only, and the best stalls sell out by midday. Strawberry season runs roughly December to May.'},
+
+ /* ---- Yanagawa, second layer ---- */
+ {id:'ohana', name:'Ohana', jp:'御花', area:'yanagawa', cats:['art','nature'], lat:33.1615, lon:130.4033,
+  dwell:60, fee:700,
+  blurb:'The Tachibana family’s Edo-period mansion and garden, with a drawing room of painted screens facing a pond of carp.',
+  tip:'¥700 for the garden and the Ohana reference room. The restaurant serves the local unagi seiro-mushi.'},
+
+ {id:'yanagawa-castle', name:'Yanagawa Castle Ruins', jp:'柳川城跡', area:'yanagawa', cats:['art','nature'], lat:33.1625, lon:130.4005,
+  dwell:25, fee:0,
+  blurb:'Only the moats and earthworks remain of the castle, now a quiet park of pines and water where the boat tours pass.',
+  tip:'Free. It is on the canal route, so ask the boatman to stop rather than walking back.'},
+
+ /* ---- Karatsu, second layer ---- */
+ {id:'karatsu-kunchi', name:'Karatsu Kunchi Hall', jp:'唐津くんちの館', area:'karatsu', cats:['art'], lat:33.4503, lon:129.9686,
+  dwell:30, fee:310,
+  blurb:'The festival float hall: fourteen enormous lacquered lions, helmets and dragons carried through town every November.',
+  tip:'¥310. The floats are the size of a small house — the hall exists so you can see them without the crowds.'},
+
+ {id:'niji', name:'Niji-no-Matsubara', jp:'虹の松原', area:'karatsu', cats:['nature'], lat:33.4468, lon:130.0135,
+  dwell:45, fee:0,
+  blurb:'A four-kilometre avenue of black pines planted in the 17th century to shelter the road — one of Japan’s three great pine groves.',
+  tip:'Free. The JR Chikuhi line runs through it, so the train window is a legitimate way to see it.',
+  photo:'img/niji-matsubara.jpg'},
+
+ {id:'former-karatsu-bank', name:'Former Karatsu Bank', jp:'旧唐津銀行', area:'karatsu', cats:['art'], lat:33.4479, lon:129.9703,
+  dwell:25, fee:0,
+  blurb:'A 1912 bank of brick and copper domes, built by a disciple of the architect of Tokyo Station, now a small museum.',
+  tip:'Free, closed Mondays. It is two minutes from the castle park and makes a good rainy stop.'},
+
+ /* ---- Kitakyushu, second layer ---- */
+ {id:'sarakura', name:'Mount Sarakura', jp:'皿倉山', area:'kitakyushu', cats:['view'], lat:33.8510, lon:130.7900,
+  dwell:90, fee:1230,
+  blurb:'A cable car and slope car up to a 622 m deck with the whole industrial bay below — one of Japan’s new three great night views.',
+  tip:'¥1,230 return. Go up an hour before sunset and come down after dark; the last car leaves around 22:00.', photo:'img/place-unknown.svg'},
+
+ {id:'kawachi', name:'Kawachi Wisteria Garden', jp:'河内藤園', area:'kitakyushu', cats:['nature'], lat:33.7930, lon:130.7300,
+  dwell:60, fee:1500,
+  blurb:'Tunnels of wisteria in purple, white and pink, open only in late April and early May — the photographs are not exaggerated.',
+  tip:'Timed tickets are required in season and sell out. Outside those two weeks the garden is closed.', photo:'img/place-unknown.svg'},
+
+ /* ---- Nagasaki, second layer ---- */
+ {id:'dejima', name:'Dejima', jp:'出島', area:'nagasaki', cats:['art'], lat:32.7437, lon:129.8730,
+  dwell:60, fee:510,
+  blurb:'The fan-shaped artificial island where the Dutch were confined for two centuries — rebuilt streets, warehouses and rooms.',
+  tip:'¥510. It is a 5-minute walk from the tram stop, and the restored buildings are best seen slowly.', photo:'img/place-unknown.svg'},
+
+ {id:'inasayama', name:'Mount Inasa', jp:'稲佐山', area:'nagasaki', cats:['view'], lat:32.7487, lon:129.8483,
+  dwell:75, fee:1250,
+  blurb:'The ropeway to the 333 m summit, with the harbour and the whole lit city in a bowl below — Nagasaki’s classic night view.',
+  tip:'¥1,250 return by ropeway, or a bus to the top for less. Go for dusk and stay for the lights.', photo:'img/place-unknown.svg'},
+
+ /* ---- Beppu, Yufuin, Kagoshima ---- */
+ {id:'beppu-sand', name:'Beppu Beach Sand Bath', jp:'別府海浜砂湯', area:'beppu', cats:['nature'], lat:33.2790, lon:131.5060,
+  dwell:60, fee:1500,
+  blurb:'Lie in a trench dug on the beach while hot spring water is shovelled over you, with the bay a metre away.',
+  tip:'About ¥1,500 including towel and gown. Bring nothing valuable — you are buried for ten minutes.', photo:'img/place-unknown.svg'},
+
+ {id:'floral-village', name:'Yufuin Floral Village', jp:'湯布院フローラルビレッジ', area:'yufuin', cats:['shopping','food'], lat:33.2653, lon:131.3747,
+  dwell:40, fee:0,
+  blurb:'A small Cotswold-style lane of shops on the way to the lake — honey, owl cafés, cream puffs and a lot of photographs.',
+  tip:'Free to walk. It sits halfway along Yunotsubo Kaido, so it is a stop rather than a destination.', photo:'img/place-unknown.svg'},
+
+ {id:'shiroyama', name:'Shiroyama Park', jp:'城山公園', area:'kagoshima', cats:['nature','view'], lat:31.5976, lon:130.5493,
+  dwell:45, fee:0,
+  blurb:'The hill above the city where Saigo’s last stand took place, now a wooded park with the volcano across the bay.',
+  tip:'Free. The Shiroyama observatory bus runs from Tenmonkan; the walk up takes about 25 minutes.', photo:'img/place-unknown.svg'},
+
+ /* ---- Hiroshima, second layer ---- */
+ {id:'hiroshima-castle', name:'Hiroshima Castle', jp:'広島城', area:'hiroshima', cats:['art','view'], lat:34.4025, lon:132.4594,
+  dwell:60, fee:370,
+  blurb:'The reconstructed keep of the Mori clan, on its moat ten minutes from the Peace Park, with a museum of the castle town inside.',
+  tip:'¥370 for the keep. The grounds and moat walk are free and much quieter than the Peace Park.', photo:'img/place-unknown.svg'},
+
+ {id:'okonomimura', name:'Okonomi-mura', jp:'お好み村', area:'hiroshima', cats:['food'], lat:34.3915, lon:132.4593,
+  dwell:60, fee:0,
+  blurb:'A three-storey building of okonomiyaki counters, each with its own cook and its own version of the Hiroshima layered style.',
+  tip:'Pick a floor at random and sit at a counter with locals. Cash, and expect a short queue at lunch.', photo:'img/place-unknown.svg'},
+
+ /* ---- Sasaguri ---- */
+ {id:'sasaguri-pilgrimage', name:'Sasaguri pilgrimage trail', jp:'篠栗四国八十八ヶ所', area:'sasaguri', cats:['temple','nature'], lat:33.6170, lon:130.5230,
+  dwell:90, fee:0,
+  blurb:'An 88-temple miniature of Shikoku’s pilgrimage, strung through the forested valleys above Sasaguri — quiet, mossy and free.',
+  tip:'Start at Nanzoin and walk as much as you like; the full circuit takes days, two or three temples are enough.'}
 ];
 
 const POI = Object.fromEntries(POIS.map(p=>[p.id,p]));
@@ -697,6 +879,194 @@ const EAT = [
    t:['Order a morning set before 11:00.','Try a single-origin pour-over at a small roaster.','Walk the back streets towards Tenjin Central Park afterwards.']}
 ];
 const EAT_BY = Object.fromEntries(EAT.map(e=>[e.id,e]));
+
+/* ---------- eating on a day trip: the meal is at the destination ----
+   A lunch recommendation in Tenjin is useless on a Hiroshima day, so
+   every day-trip region carries its own breakfast-free set.          */
+const EAT_TRIP = [
+  /* Dazaifu */
+  {id:'t-dazaifu-lunch', meal:'lunch', name:'Tenmangu approach stalls', jp:'天満宮表参道', area:'dazaifu', img:'makino-udon',
+   where:'The shrine approach, 5 min from Dazaifu station', price:'¥800–1,400', open:'10:00–17:00',
+   rec:'Ume-gayu (plum rice porridge) and Dazaifu soba at the stalls along the approach — the local order is porridge, then a grilled cake for the walk back.',
+   w:'A row of small kitchens and tea rooms between the station and the shrine, most of them selling the same two things: plum porridge and buckwheat noodles.'},
+  {id:'t-dazaifu-tea', meal:'tea', name:'Umegae-mochi stalls', jp:'梅ヶ枝餅', area:'dazaifu', img:'umegae',
+   where:'Along the approach · several stalls', price:'¥150 a cake', open:'09:00–17:00',
+   rec:'Rice cakes grilled to order with red bean inside — crisp outside, eaten standing at the stall.',
+   w:'Small stalls with a hot plate each, turning cakes by hand and selling them within a minute of the grill.'},
+  {id:'t-dazaifu-dinner', meal:'dinner', name:'Dazaifu unagi houses', jp:'太宰府のうなぎ', area:'dazaifu', img:'unagi',
+   where:'Around the shrine and the station', price:'¥2,500–4,500', open:'11:00–20:00',
+   rec:'Charcoal-grilled eel over rice is what people eat here before the train back — a short, expensive, very good dinner.',
+   w:'Several old eel restaurants sit on the shrine approach and near the station, grilling to order in lacquered boxes.'},
+
+  /* Sasaguri */
+  {id:'t-sasaguri-lunch', meal:'lunch', name:'Sasaguri soba shops', jp:'篠栗のそば処', area:'sasaguri', img:'makino-udon',
+   where:'Near Nanzoin and along the valley road', price:'¥800–1,200', open:'11:00–15:00',
+   rec:'Rural soba with mountain vegetables, served in converted farmhouses around the temple — lunch is part of the day out here.',
+   w:'A handful of family soba restaurants in the valley, most with a few tables and a view of the forest.'},
+  {id:'t-sasaguri-tea', meal:'tea', name:'Nanzoin shrine tea house', jp:'南蔵院の茶屋', area:'sasaguri', img:'umegae',
+   where:'At the temple gate', price:'¥300–600', open:'09:00–16:00',
+   rec:'Sweet red-bean soup and tea at the temple, eaten on a bench beside the reclining Buddha.',
+   w:'A simple tea house at the temple entrance serving amazake and dango to pilgrims.'},
+  {id:'t-sasaguri-dinner', meal:'dinner', name:'Back to Hakata for dinner', jp:'博多で夕食', area:'sasaguri', img:'yakitori',
+   where:'Hakata Station, 30 min back on the JR line', price:'¥2,000–3,500', open:'17:00–23:00',
+   rec:'Sasaguri is a half-day place: eat dinner back in Hakata, where the yakitori counters are, rather than waiting for a country kitchen to open.',
+   w:'The last leg back is 30 minutes, so plan the evening in the city and keep the day trip to daylight.'},
+
+  /* Itoshima */
+  {id:'t-itoshima-lunch', meal:'lunch', name:'Itoshima oyster huts', jp:'糸島のかき小屋', area:'itoshima', img:'nigiri',
+   where:'Kishi and Fukuyoshi, along the coastal road', price:'¥1,500–3,000', open:'10:00–16:00 (winter)',
+   rec:'In season you grill your own oysters at a table under a tarpaulin, with the sea across the road. Out of season, grilled squid and fish set meals.',
+   w:'Seasonal oyster huts open from roughly November to March on the beaches west of Maebaru; the rest of the year the same families run seafood counters.'},
+  {id:'t-itoshima-tea', meal:'tea', name:'Itoshima coast cafés', jp:'糸島のカフェ', area:'itoshima', img:'latte',
+   where:'Along the Sunset Road and Futamigaura', price:'¥600–1,100', open:'11:00–18:00',
+   rec:'The coast road is a chain of small cafés with wooden decks facing the sea — the local ritual is coffee at sunset.',
+   w:'Scattered beach cafés and bakeries between Maebaru and Futamigaura, most with parking and a view of the water.'},
+  {id:'t-itoshima-dinner', meal:'dinner', name:'Ito no Umi seafood', jp:'糸島の海鮮', area:'itoshima', img:'unagi',
+   where:'Fishing ports along the coast · then the JR back', price:'¥2,000–4,000', open:'11:00–20:00',
+   rec:'Eat fish at the port before the last train: sea bream, squid and whatever came in that morning, at a fraction of city prices.',
+   w:'Port-side restaurants at Fukuyoshi and Maebaru, mostly family-run, with a counter and a tank.'},
+
+  /* Yanagawa */
+  {id:'t-yanagawa-lunch', meal:'lunch', name:'Motoyoshiya unagi', jp:'元祖本吉屋', area:'yanagawa', img:'unagi',
+   where:'Okinohata, on the canal · 10 min from Nishitetsu-Yanagawa', price:'¥3,000–5,000', open:'11:00–20:00',
+   rec:'Yanagawa’s seiro-mushi eel — grilled, then steamed over rice in a wooden box — has been made at this canal-side house since 1681.',
+   w:'A thatched Edo-period building over the water, where the eel is grilled then steamed and brought in a lacquered box.'},
+  {id:'t-yanagawa-tea', meal:'tea', name:'Yanagawa sweets shops', jp:'柳川の甘味処', area:'yanagawa', img:'umegae',
+   where:'Around the boat dock and the castle park', price:'¥400–800', open:'10:00–17:00',
+   rec:'Shiruko and cold matcha in a shop facing the moat, after the boat ride.',
+   w:'Old sweet shops near the canal landing, most of them with a few seats looking at the water.'},
+  {id:'t-yanagawa-dinner', meal:'dinner', name:'Canal-side izakaya', jp:'川沿いの居酒屋', area:'yanagawa', img:'yakitori',
+   where:'Near Nishitetsu-Yanagawa station', price:'¥2,000–3,500', open:'17:00–22:00',
+   rec:'Small izakaya by the station serving river fish and local sake — or take the 48-minute train back and eat later in Tenjin.',
+   w:'A short street of izakaya and yakitori counters around the station, busiest on Friday and Saturday.'},
+
+  /* Karatsu */
+  {id:'t-karatsu-lunch', meal:'lunch', name:'Yobuko squid houses', jp:'呼子のイカ', area:'karatsu', img:'nigiri',
+   where:'Yobuko port, 30 min by bus from Karatsu station', price:'¥1,800–3,500', open:'11:00–15:00',
+   rec:'Live squid, sliced transparent within a minute of leaving the tank — Yobuko is the port that made the dish famous.',
+   w:'A row of squid restaurants around the Yobuko fish market, each with tanks at the door. The tentacles come back fried or as tempura afterwards.'},
+  {id:'t-karatsu-tea', meal:'tea', name:'Karatsu-ware tea rooms', jp:'唐津焼の茶処', area:'karatsu', img:'latte',
+   where:'Around Karatsu station and the castle', price:'¥500–900', open:'10:00–17:00',
+   rec:'Coffee or matcha served in Karatsu-ware — the local pottery is 400 years old and the cups are the point.',
+   w:'Small cafés and gallery tea rooms in the town centre, several of them inside kilns and old merchant houses.'},
+  {id:'t-karatsu-dinner', meal:'dinner', name:'Karatsu fish market counters', jp:'唐津の海鮮', area:'karatsu', img:'unagi',
+   where:'Near the station and the ferry terminal', price:'¥2,000–3,500', open:'11:00–20:00',
+   rec:'Eat early at the market counters, then take the coastal JR line back — the last useful train leaves before 21:00.',
+   w:'Family seafood restaurants around the station, with the day’s catch on a board by the door.'},
+
+  /* Kitakyushu */
+  {id:'t-kitakyushu-lunch', meal:'lunch', name:'Kokura udon shops', jp:'小倉うどん', area:'kitakyushu', img:'sukesan-udon',
+   where:'Around Kokura station and the Tanga market', price:'¥500–900', open:'07:00–20:00',
+   rec:'Kokura udon is softer and sweeter than the Hakata version, and the station stands sell it from early morning.',
+   w:'Standing and counter udon shops in and around Kokura station, plus the market stalls a short walk away.'},
+  {id:'t-kitakyushu-tea', meal:'tea', name:'Mojiko retro cafés', jp:'門司港レトロの喫茶', area:'kitakyushu', img:'latte',
+   where:'Mojiko retro district, by the ferry terminal', price:'¥600–1,000', open:'10:00–18:00',
+   rec:'Coffee and baked curry in the 1910s warehouses of Mojiko, with the Kanmon strait out of the window.',
+   w:'A cluster of cafés in the restored port buildings, several of them in former customs and bank offices.'},
+  {id:'t-kitakyushu-dinner', meal:'dinner', name:'Yahata gyoza counters', jp:'八幡の餃子', area:'kitakyushu', img:'yakitori',
+   where:'Yahata and Kokura · or the 20-min Sonic back', price:'¥1,500–3,000', open:'17:00–23:00',
+   rec:'Kitakyushu has its own gyoza culture — small, crisp and ordered by the dozen — and a night view to go with it if you go up Sarakurayama first.',
+   w:'Smoky gyoza and yakitori counters around Yahata and Kokura stations, cheap and open late.'},
+
+  /* Kumamoto */
+  {id:'t-kumamoto-lunch', meal:'lunch', name:'Kokutei ramen', jp:'黒亭', area:'kumamoto', img:'ramen-hakata',
+   where:'Near Kumamoto station · also branches downtown', price:'¥800–1,200', open:'10:30–21:00',
+   rec:'Kumamoto ramen: thick noodles, garlic oil and a burnt-fried garlic chip on top. Kokutei is the counter locals name first.',
+   w:'A busy ramen shop with counter seating and a short menu — ramen, gyoza, rice. Order at the ticket machine.'},
+  {id:'t-kumamoto-tea', meal:'tea', name:'Ikinari dango stalls', jp:'いきなり団子', area:'kumamoto', img:'umegae',
+   where:'Station shops and around Suizenji', price:'¥150–400', open:'09:00–17:00',
+   rec:'Sweet potato and red bean steamed in a dough parcel — the plainest, most Kumamoto thing you can eat standing up.',
+   w:'Sold at station kiosks and small sweet shops; it is steamed, not grilled, so it comes warm in paper.'},
+  {id:'t-kumamoto-dinner', meal:'dinner', name:'Basashi and akaushi beef', jp:'馬刺し・あか牛', area:'kumamoto', img:'yakitori',
+   where:'Shimotori arcade and around the station', price:'¥3,000–5,000', open:'17:00–23:00',
+   rec:'Horse sashimi and red beef are the local evening orders; both are served raw or seared at izakaya in the arcade.',
+   w:'Izakaya in the Shimotori and Kamitori arcades, most with a picture menu and a basashi set.'},
+
+  /* Nagasaki */
+  {id:'t-nagasaki-lunch', meal:'lunch', name:'Shikairo champon', jp:'四海楼', area:'nagasaki', img:'ramen-hakata',
+   where:'Matsugae, above the harbour · 10 min from Oura', price:'¥1,000–1,600', open:'11:00–21:00',
+   rec:'The 1899 restaurant that invented champon: pork, squid and cabbage in a milky broth, plus sara udon if you want it crisp.',
+   w:'A large Chinese restaurant on the hill above the port, with a view over the bay and a menu built around two dishes.'},
+  {id:'t-nagasaki-tea', meal:'tea', name:'Castella shops', jp:'カステラ', area:'nagasaki', img:'umegae',
+   where:'Shinchi Chinatown and the Oura slope', price:'¥300–900', open:'09:00–18:00',
+   rec:'Nagasaki castella — the Portuguese sponge the city has been baking for 400 years. Buy a thick slice, still warm.',
+   w:'Bakery shops along the Chinatown streets and the slope to Glover Garden, most offering samples at the door.'},
+  {id:'t-nagasaki-dinner', meal:'dinner', name:'Dejima Wharf seafood', jp:'出島ワーフの海鮮', area:'nagasaki', img:'nigiri',
+   where:'Dejima Wharf, on the water', price:'¥2,500–4,500', open:'11:00–22:00',
+   rec:'Fish and chips aside, the wharf restaurants do the local catch — and the terrace looks straight at the harbour lights.',
+   w:'A row of restaurants on a pier by Dejima, with terraces over the water and a view of Mount Inasa.'},
+
+  /* Beppu */
+  {id:'t-beppu-lunch', meal:'lunch', name:'Beppu cold noodles', jp:'別府冷麺', area:'beppu', img:'makino-udon',
+   where:'Around Beppu station', price:'¥800–1,300', open:'11:00–20:00',
+   rec:'Beppu reimen: chewy cold noodles in a beef broth, a Korean-Japanese dish the city adopted and made its own.',
+   w:'A handful of old noodle shops near the station, each with a slightly different broth and kimchi.'},
+  {id:'t-beppu-tea', meal:'tea', name:'Jigoku-mushi pudding', jp:'地獄蒸しプリン', area:'beppu', img:'latte',
+   where:'Kannawa, at the hells', price:'¥350–600', open:'09:00–17:00',
+   rec:'Custard steamed over the hot springs — the set is a small glass jar of pudding and a spoon, eaten at the counter.',
+   w:'Sold at the hells and at a few Kannawa shops, steamed in the same vents that cook the eggs.'},
+  {id:'t-beppu-dinner', meal:'dinner', name:'Toriten and onsen steam', jp:'とり天', area:'beppu', img:'tempura',
+   where:'Downtown Beppu, near the station', price:'¥1,500–3,000', open:'17:00–23:00',
+   rec:'Toriten — Oita’s fried chicken tempura — with a cold beer, or a jigoku-mushi set steamed at your table.',
+   w:'Izakaya and set-meal shops around Ekimae-dori, most of them with toriten on the first line of the menu.'},
+
+  /* Yufuin */
+  {id:'t-yufuin-lunch', meal:'lunch', name:'Yunotsubo croquettes and soba', jp:'湯の坪街道の食べ歩き', area:'yufuin', img:'tempura',
+   where:'Yunotsubo Kaido, between the station and the lake', price:'¥400–1,300', open:'10:00–17:00',
+   rec:'The lane is built for eating while walking: beef croquettes, tofu, soft ice cream and a bowl of soba when you want to sit down.',
+   w:'A single shopping street running uphill from the station, lined with counters selling one thing each.'},
+  {id:'t-yufuin-tea', meal:'tea', name:'Yufuin roll cake', jp:'由布院ロールケーキ', area:'yufuin', img:'latte',
+   where:'Yunotsubo Kaido', price:'¥500–1,200', open:'10:00–17:00',
+   rec:'The town’s famous Swiss roll, sold by the slice with coffee in a garden café behind the shops.',
+   w:'Bake shops along the lane, several with a sit-down café and a view of Mount Yufu.'},
+  {id:'t-yufuin-dinner', meal:'dinner', name:'Onsen-steamed set meals', jp:'湯布院の湯けむり料理', area:'yufuin', img:'sukesan-udon',
+   where:'Near the station and the lake', price:'¥2,500–4,500', open:'17:00–21:00',
+   rec:'Vegetables and chicken steamed over the spring vents, served with rice — Yufuin’s quiet answer to a hot-spring dinner.',
+   w:'Ryokan dining rooms and a few restaurants near the station, most requiring a reservation by afternoon.'},
+
+  /* Kagoshima */
+  {id:'t-kagoshima-lunch', meal:'lunch', name:'Kurobuta tonkatsu', jp:'黒豚とんかつ', area:'kagoshima', img:'tempura',
+   where:'Tenmonkan and the station', price:'¥1,300–2,200', open:'11:00–21:00',
+   rec:'Kagoshima’s black pork, breaded and fried, with shredded cabbage and a sweet-savoury sauce. The local lunch order.',
+   w:'Tonkatsu restaurants in Tenmonkan and at the station, most with a counter and a set with rice, soup and pickles.'},
+  {id:'t-kagoshima-tea', meal:'tea', name:'Mujaki shirokuma', jp:'むじゃき 白熊', area:'kagoshima', img:'latte',
+   where:'Tenmonkan arcade', price:'¥700–1,000', open:'11:00–21:00',
+   rec:'Shirokuma — shaved ice piled with condensed milk and fruit, invented in this arcade and still the city’s dessert.',
+   w:'A bright café in the Tenmonkan arcade with a plastic model of the ice in the window and a queue in August.'},
+  {id:'t-kagoshima-dinner', meal:'dinner', name:'Kagoshima ramen and shochu', jp:'鹿児島ラーメンと焼酎', area:'kagoshima', img:'ramen-hakata',
+   where:'Tenmonkan back streets', price:'¥900–2,500', open:'17:00–24:00',
+   rec:'Pale pork-and-chicken broth with pickled radish, and a glass of the local sweet-potato shochu on the rocks.',
+   w:'Small ramen counters and shochu bars in the Tenmonkan grid, many open past midnight.'},
+
+  /* Hiroshima */
+  {id:'t-hiroshima-lunch', meal:'lunch', name:'Okonomi-mura', jp:'お好み村', area:'hiroshima', img:'yatai2',
+   where:'Shintenchi, 5 min from the Peace Park', price:'¥900–1,400', open:'11:00–22:00',
+   rec:'Hiroshima okonomiyaki is layered, not mixed: batter, cabbage, pork, noodles, egg. Twenty-odd counters in one building, each with its own cook.',
+   w:'A narrow building of okonomiyaki stalls on three floors, all counter seating, all cooked in front of you on a hot plate.'},
+  {id:'t-hiroshima-tea', meal:'tea', name:'Momiji manju on Miyajima', jp:'もみじ饅頭', area:'hiroshima', img:'umegae',
+   where:'Miyajima shopping street, by the shrine', price:'¥120–400', open:'09:00–17:00',
+   rec:'Maple-leaf cakes filled with red bean, fried on a hot plate so the edges crisp — the ferry ride back tastes of them.',
+   w:'Dozens of shops along the Miyajima approach; the ones frying in the window are the ones to buy from.'},
+  {id:'t-hiroshima-dinner', meal:'dinner', name:'Anagomeshi before the train', jp:'あなごめし', area:'hiroshima', img:'unagi',
+   where:'Around Hiroshima station, or on Miyajima', price:'¥2,000–3,500', open:'11:00–20:00',
+   rec:'Salt-water eel grilled and laid over rice, in a lacquered box — the last proper meal before the shinkansen home.',
+   w:'Anago restaurants at the station and on the island, most with a queue at noon and space after 18:00.'},
+
+  /* Sasebo */
+  {id:'t-sasebo-lunch', meal:'lunch', name:'Sasebo burger', jp:'佐世保バーガー', area:'sasebo', img:'yatai2',
+   where:'Around Sasebo station and the arcade', price:'¥600–1,200', open:'10:00–20:00',
+   rec:'The American-influenced burger Sasebo has made since the base years: hand-made patty, bacon, egg, a squirt of sauce.',
+   w:'Independent burger shops across the city, each with a slightly different stack — Hikari is the best known.'},
+  {id:'t-sasebo-tea', meal:'tea', name:'Huis Ten Bosch bakeries', jp:'ハウステンボスの焼き菓子', area:'sasebo', img:'latte',
+   where:'Inside Huis Ten Bosch', price:'¥400–900', open:'09:00–20:00',
+   rec:'Cheese cake and coffee in a Dutch-style square, with the canals and the windmill outside the window.',
+   w:'Cafés and bakeries throughout the park; the ones along the harbour are the quietest.'},
+  {id:'t-sasebo-dinner', meal:'dinner', name:'Lemon steak and seafood', jp:'レモンステーキ・海鮮', area:'sasebo', img:'yakitori',
+   where:'Downtown Sasebo · or the Midori back to Hakata', price:'¥1,800–3,500', open:'17:00–22:00',
+   rec:'Sasebo lemon steak — thin beef with a lemon-and-soy sauce — is the local dinner, and the fish is straight off the port.',
+   w:'Teppan and seafood restaurants in the arcade near the station, most open until 22:00.'}
+];
+const EAT_TRIP_BY = Object.fromEntries(EAT_TRIP.map(e=>[e.id,e]));
 
 /* ============================================================
    DETAIL — what each place is, what stands out, what to do
