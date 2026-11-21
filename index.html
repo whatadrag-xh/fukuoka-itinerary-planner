@@ -19,6 +19,7 @@
     <nav class="navlinks">
       <a href="#planner">Planner</a>
       <a href="#highlights">Highlights</a>
+      <a href="#eat">Where to eat</a>
       <a href="#sourceCard">Sources</a>
     </nav>
     <a class="brand" href="#top" aria-label="Fukuoka Itinerary Planner">
@@ -53,11 +54,14 @@
       <ul class="hero-meta">
         <li><b>51</b> places</li>
         <li><b>13</b> day trips</li>
-        <li><b>84</b> photographs</li>
+        <li><b>12</b> places to eat</li>
       </ul>
+      <p class="hero-tap">Tap any photograph to open the place.</p>
     </div>
     <div class="hero-media">
-      <img src="img/nakasu.jpg" alt="Nakasu yatai food stalls at night, Fukuoka">
+      <button class="heroimg" data-detail="nakasu" aria-label="Open Nakasu Yatai details">
+        <img src="img/nakasu.jpg" alt="Nakasu yatai food stalls at night, Fukuoka">
+      </button>
       <div class="hero-tag"><span>中洲屋台</span><b>Nakasu Yatai · Fukuoka</b></div>
     </div>
   </div>
@@ -70,7 +74,7 @@
     <p class="seclede">Four things the plan is built around — each one is a stop in the itinerary below.</p>
   </div>
   <div class="hlgrid">
-    <article class="hl">
+    <article class="hl" data-detail="kushida" tabindex="0">
       <div class="hlpic"><img src="img/kushida.jpg" alt="Kushida Shrine" loading="lazy"></div>
       <div class="hlbody">
         <p class="hljp">櫛田神社</p>
@@ -79,7 +83,7 @@
         <span class="pill">Free · Temple</span>
       </div>
     </article>
-    <article class="hl">
+    <article class="hl" data-detail="nakasu" tabindex="0">
       <div class="hlpic"><img src="img/nakasu.jpg" alt="Nakasu yatai food stalls" loading="lazy"></div>
       <div class="hlbody">
         <p class="hljp">中洲屋台</p>
@@ -88,7 +92,7 @@
         <span class="pill">Cash · Evening</span>
       </div>
     </article>
-    <article class="hl">
+    <article class="hl" data-detail="kumamoto-castle" tabindex="0">
       <div class="hlpic"><img src="img/kumamoto-castle.jpg" alt="Kumamoto Castle" loading="lazy"></div>
       <div class="hlbody">
         <p class="hljp">熊本城</p>
@@ -97,7 +101,7 @@
         <span class="pill">Day trip · ¥4,750</span>
       </div>
     </article>
-    <article class="hl">
+    <article class="hl" data-detail="dazaifu" tabindex="0">
       <div class="hlpic"><img src="img/dazaifu.jpg" alt="Dazaifu Tenmangu" loading="lazy"></div>
       <div class="hlbody">
         <p class="hljp">太宰府</p>
@@ -107,6 +111,15 @@
       </div>
     </article>
   </div>
+</section>
+
+<section class="eat" id="eat">
+  <div class="sechead">
+    <p class="eyebrow">Breakfast, lunch, dinner · 食</p>
+    <h2>Where to eat</h2>
+    <p class="seclede">Twelve places worth planning a day around. Each one is a real counter or street in Fukuoka and Kyushu, with what to order and why we picked it.</p>
+  </div>
+  <div class="eatgrid" id="eatGrid"></div>
 </section>
 
 <div class="sechead" id="planner">
@@ -204,6 +217,14 @@
       <input id="sheetSearch" class="search" type="search" placeholder="Search these places…" aria-label="Search places">
     </div>
     <div class="sheet-list" id="sheetList"></div>
+  </div>
+</div>
+
+<div class="detail" id="detailModal" aria-hidden="true">
+  <div class="detail-back" data-dclose></div>
+  <div class="glass" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <button class="glass-x" data-dclose aria-label="Close">×</button>
+    <div class="glass-scroll" id="detailBody"></div>
   </div>
 </div>
 

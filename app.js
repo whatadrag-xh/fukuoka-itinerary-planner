@@ -215,20 +215,30 @@ function altList(p){
   if(!rows.length) return '';
   const inner = rows.map(a =>
     '<li>' + (a.img
-        ? '<img class="althumb" src="img/' + a.img + '.jpg" alt="' + esc(a.n) + '" loading="lazy">'
+        ? '<img class="althumb" src="img/' + a.img + '.jpg" alt="' + esc(a.n) + '" loading="lazy"' +
+          (POI[a.img] ? ' data-detail="' + a.img + '" role="button" tabindex="0"' : '') + '>'
         : '<div class="althumb">' + esc((a.jp || a.n).charAt(0)) + '</div>') +
       '<div><div class="nameline"><b>' + esc(a.n) + '</b><span class="jp">' + esc(a.jp) + '</span></div>' +
       '<div class="metaline"><span class="w">' + esc(a.w) + '</span> · ' + esc(a.note) + '</div></div></li>').join('');
   return '<details class="alts"><summary>' + rows.length + ' places within reach</summary><ul>' + inner + '</ul></details>';
 }
 
+function timeBtn(value, attrs, label){
+  return '<button class="timebtn" ' + attrs + ' aria-haspopup="listbox" aria-label="' + esc(label) + '">' +
+    '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">' +
+      '<circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3 2"/></svg>' +
+    '<span>' + (value || 'off') + '</span></button>';
+}
+
 function mealRow(r, dayIdx){
   const off = r.off ? ' off' : '';
   const tval = r.off ? '' : fmt(r.start);
+  const picks = EAT.filter(e => e.meal === r.key);
+  const pick = (!r.off && picks.length) ? picks[dayIdx % picks.length] : null;
   return '<li class="row mealrow' + off + '" draggable="true" data-day="' + dayIdx + '" data-idx="' + r.idx + '">' +
     '<div class="rowgrip" title="Drag to move">⠿</div>' +
     '<div class="rowtime">' +
-      '<input class="tin" type="time" data-day="' + dayIdx + '" data-idx="' + r.idx + '" value="' + tval + '" aria-label="' + esc(r.label) + ' time">' +
+      timeBtn(tval, 'data-topen="' + dayIdx + ':' + r.idx + '"', r.label + ' time') +
       '<div class="durline">' +
         '<button data-durstep="-15" data-day="' + dayIdx + '" data-idx="' + r.idx + '" aria-label="15 minutes shorter">−</button>' +
         '<span>' + (r.off ? 'off' : r.dur + ' min') + '</span>' +
@@ -240,6 +250,11 @@ function mealRow(r, dayIdx){
       '<div class="stopname">' + esc(r.label) + '<span class="jp">' + esc(r.jp) + '</span>' +
         '<span class="tag">meal</span></div>' +
       '<div class="blurb">' + esc(r.blurb) + '</div>' +
+      (pick ? '<button class="mealpick" data-detail="eat:' + pick.id + '">' +
+        '<img src="img/' + pick.img + '.jpg" alt="" loading="lazy">' +
+        '<span class="mpbody"><b>Top pick · ' + esc(pick.name) + '</b>' +
+          '<em>' + esc(pick.rec) + '</em></span>' +
+        '<span class="mpprice">' + esc(pick.price) + '</span></button>' : '') +
     '</div>' +
     '<div class="rowtools">' +
       '<label class="mealcheck" title="Include this meal"><input type="checkbox" data-mealtoggle="' + dayIdx + ':' + r.idx + '"' + (r.off ? '' : ' checked') + '><span>in plan</span></label>' +
@@ -262,7 +277,7 @@ function stopRow(r, dayIdx){
   return '<li class="row" draggable="true" data-day="' + dayIdx + '" data-idx="' + r.idx + '">' +
     '<div class="rowgrip" title="Drag to move">⠿</div>' +
     '<div class="rowtime">' +
-      '<input class="tin" type="time" data-day="' + dayIdx + '" data-idx="' + r.idx + '" value="' + fmt(r.start) + '" aria-label="Start time for ' + esc(p.name) + '">' +
+      timeBtn(fmt(r.start), 'data-topen="' + dayIdx + ':' + r.idx + '"', 'Start time for ' + p.name) +
       '<div class="durline">' +
         '<button data-durstep="-15" data-day="' + dayIdx + '" data-idx="' + r.idx + '" aria-label="15 minutes shorter">−</button>' +
         '<span>' + r.dur + ' min</span>' +
@@ -271,7 +286,9 @@ function stopRow(r, dayIdx){
       (r.pinned ? '<button class="pinflag" data-unpin="' + dayIdx + ':' + r.idx + '">fixed · auto</button>' : '') +
     '</div>' +
     '<div class="stopbody">' +
-      '<img class="ph" src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" loading="lazy">' +
+      '<button class="phbtn" data-detail="' + p.id + '" aria-label="Open details for ' + esc(p.name) + '">' +
+        '<img class="ph" src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" loading="lazy">' +
+        '<span class="phzoom">Expand</span></button>' +
       '<div class="stoptext">' +
         '<div class="stopname">' + esc(p.name) + '<span class="jp">' + esc(p.jp) + '</span>' +
           '<span class="tag">' + catLabel(p.cats[0]) + '</span></div>' +
@@ -309,7 +326,7 @@ function renderDays(){
       '<div class="daynum" style="background:' + col + '">' + (di+1) + '</div>' +
       '<div class="daytitle"><h3>' + esc(title) + (jp ? '<span class="jpname">' + esc(jp) + '</span>' : '') + '</h3>' +
         '<div class="daymeta">' + stopCount + ' stops · leave ' +
-          '<input class="dstart" type="time" data-day="' + di + '" value="' + fmt(day.start) + '" aria-label="Leave the hotel at">' +
+          timeBtn(fmt(day.start), 'data-topen="start:' + di + '"', 'Leave the hotel at') +
           ' · back around ' + fmt(s.end + (s.back ? s.back.min : 0)) + ' · ' + yen(s.fares) + ' transit' +
         '</div>' +
       '</div>' +
@@ -384,7 +401,7 @@ function ensureMap(){
 function popupHtml(p, n){
   return '<div class="pj">' + n + '. ' + esc(p.name) + '</div>' +
     '<div class="jp">' + esc(p.jp) + '</div>' +
-    '<img src="img/' + p.id + '.jpg" alt="">' +
+    '<img src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" data-detail="' + p.id + '" role="button" tabindex="0">' +
     '<div>' + esc(p.blurb) + '</div>' +
     '<div style="margin-top:5px;color:#6b6459">' + mins(p.dwell) + ' · ' + (p.fee ? yen(p.fee) + ' entry' : 'free entry') + '</div>';
 }
@@ -562,6 +579,227 @@ function renderSources(){
 }
 
 /* ============================================================
+   WHERE TO EAT
+   ============================================================ */
+const MEAL_LABEL = {breakfast:'Breakfast', lunch:'Lunch', tea:'Tea', dinner:'Dinner'};
+
+function renderEat(){
+  const host = $('#eatGrid');
+  if(!host) return;
+  const order = ['breakfast','lunch','tea','dinner'];
+  host.innerHTML = '<div class="eatcol">' + order.map(k => {
+    const list = EAT.filter(e => e.meal === k);
+    return '<div class="eatgroup"><h3>' + MEAL_LABEL[k] + '<span>' +
+      (k === 'breakfast' ? '朝食' : k === 'lunch' ? '昼食' : k === 'tea' ? '喫茶' : '夕食') + '</span></h3>' +
+      list.map(e =>
+        '<button class="eatcard" data-detail="eat:' + e.id + '">' +
+          '<span class="eatpic"><img src="img/' + e.img + '.jpg" alt="' + esc(e.name) + '" loading="lazy">' +
+            '<span class="eatbadge">' + MEAL_LABEL[k] + '</span></span>' +
+          '<span class="eatbody"><span class="eatname">' + esc(e.name) + '<em>' + esc(e.jp) + '</em></span>' +
+            '<span class="eatwhere">' + esc(e.where) + '</span>' +
+            '<span class="eatreco">' + esc(e.rec) + '</span>' +
+            '<span class="eatmeta">' + esc(e.price) + ' · ' + esc(e.open) + '</span></span>' +
+        '</button>').join('') +
+      '</div>';
+  }).join('') + '</div>';
+}
+
+/* ============================================================
+   DETAIL SHEET — liquid glass, one place at a time
+   ============================================================ */
+const AREA_NAME = {hakata:'Hakata', tenjin:'Tenjin', nakasu:'Nakasu', ohori:'Ohori Park', momochi:'Momochi',
+  bay:'the bay', sasaguri:'Sasaguri', dazaifu:'Dazaifu', itoshima:'Itoshima', yanagawa:'Yanagawa',
+  karatsu:'Karatsu', kitakyushu:'Kitakyushu', kumamoto:'Kumamoto', nagasaki:'Nagasaki', beppu:'Beppu',
+  yufuin:'Yufuin', kagoshima:'Kagoshima', hiroshima:'Hiroshima', sasebo:'Sasebo'};
+
+function galleryFor(p){
+  const ref = (p.lat == null) ? (POIS.find(q => q.area === p.area) || {lat:33.5902, lon:130.4207}) : p;
+  const near = POIS.filter(q => q.id !== p.id && q.area === p.area)
+    .map(q => ({q, d:haversine(ref, q)}))
+    .sort((a,b) => a.d - b.d)
+    .slice(0, 4)
+    .map(x => x.q);
+  if(near.length >= 3) return near;
+  const extra = POIS.filter(q => q.id !== p.id && !near.includes(q) && q.area !== p.area)
+    .map(q => ({q, d:haversine(ref, q)})).sort((a,b) => a.d - b.d).slice(0, 3 - near.length).map(x => x.q);
+  return near.concat(extra);
+}
+
+function renderDetail(type, id){
+  const isEat = type === 'eat';
+  const item = isEat ? EAT_BY[id] : POI[id];
+  if(!item) return;
+  const d = isEat ? item : (DETAIL[id] || {});
+  const img = 'img/' + (isEat ? item.img : item.id) + '.jpg';
+  const area = AREA_NAME[item.area] || item.area;
+  const cats = isEat ? ['food'] : item.cats;
+  const gallery = galleryFor(item);
+
+  const chips = [
+    '<span class="dchip">' + (isEat ? MEAL_LABEL[item.meal] : catLabel(cats[0])) + '</span>',
+    '<span class="dchip">' + esc(area) + '</span>',
+    isEat
+      ? '<span class="dchip">' + esc(item.price) + '</span>'
+      : '<span class="dchip">' + (item.fee ? yen(item.fee) + ' entry' : 'Free entry') + '</span>',
+    isEat ? '<span class="dchip">' + esc(item.open) + '</span>'
+          : '<span class="dchip">About ' + mins(item.dwell) + ' here</span>'
+  ].join('');
+
+  const todos = (d.t || []).map(t => '<li>' + esc(t) + '</li>').join('');
+  const note = isEat
+    ? '<div class="dnote"><b>Where.</b> ' + esc(item.where) + '</div>'
+    : (item.tip ? '<div class="dnote"><b>Good to know.</b> ' + esc(item.tip) + '</div>' : '');
+
+  $('#detailBody').innerHTML =
+    '<div class="dhero">' +
+      '<img src="' + img + '" alt="' + esc(item.name) + '">' +
+      '<div class="dherotxt"><p class="djp">' + esc(item.jp) + '</p>' +
+        '<h2 id="detailTitle">' + esc(item.name) + '</h2></div>' +
+    '</div>' +
+    '<div class="dinner">' +
+      '<div class="dchips">' + chips + '</div>' +
+      '<p class="dlede">' + esc(isEat ? item.rec : item.blurb) + '</p>' +
+      '<div class="dsection"><h4>What it is</h4><p>' + esc(d.w || item.blurb) + '</p></div>' +
+      (d.s ? '<div class="dsection"><h4>What stands out</h4><p>' + esc(d.s) + '</p></div>' : '') +
+      (todos ? '<div class="dsection"><h4>Popular things to do</h4><ol class="dtodo">' + todos + '</ol></div>' : '') +
+      note +
+      (gallery.length ? '<div class="dsection"><h4>More around ' + esc(area) + '</h4>' +
+        '<div class="dgallery">' + gallery.map(q =>
+          '<button class="dgtile" data-detail="' + q.id + '">' +
+            '<img src="img/' + q.id + '.jpg" alt="' + esc(q.name) + '" loading="lazy">' +
+            '<span>' + esc(q.name) + '<em>' + esc(q.jp) + '</em></span></button>').join('') +
+        '</div></div>' : '') +
+      '<p class="dsource">Photographs: Wikimedia Commons.</p>' +
+    '</div>';
+
+  const scroll = $('#detailBody');
+  if(scroll) scroll.scrollTop = 0;
+}
+
+function openDetail(ref){
+  const [type, id] = ref.indexOf('eat:') === 0 ? ['eat', ref.slice(4)] : ['poi', ref];
+  const ok = type === 'eat' ? !!EAT_BY[id] : !!POI[id];
+  if(!ok) return;
+  renderDetail(type, id);
+  const m = $('#detailModal');
+  m.classList.add('open');
+  m.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('locked');
+  const x = m.querySelector('.glass-x');
+  if(x) x.focus({preventScroll:true});
+}
+
+function closeDetail(){
+  const m = $('#detailModal');
+  if(!m) return;
+  m.classList.remove('open');
+  m.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('locked');
+}
+
+/* ============================================================
+   TIME PICKER — rounded list, one pill per time
+   ============================================================ */
+let TPOP = null;
+
+const TIMES = (() => { const out = []; for(let m = 5*60; m <= 23*60+45; m += 15) out.push(m); return out; })();
+const timePeriod = m => m < 7*60 ? 'Early' : m < 11*60 ? 'Morning' : m < 14*60 ? 'Midday'
+  : m < 17*60 ? 'Afternoon' : m < 20*60 ? 'Evening' : 'Night';
+const periodIcon = p => p === 'Early' ? 'sunrise' : p === 'Evening' ? 'sunset' : p === 'Night' ? 'moon' : 'sun';
+
+function tIcon(kind){
+  const paths = {
+    sun:'<circle cx="12" cy="12" r="4.1"/><path d="M12 2.8v2.3M12 18.9v2.3M2.8 12h2.3M18.9 12h2.3M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4L17 7M7 17l-1.6 1.6"/>',
+    sunrise:'<path d="M2.8 18.4h18.4M6.6 18.4a5.4 5.4 0 0 1 10.8 0"/><path d="M12 3.4v4.2M5.6 8.4l1.7 1.7M18.4 8.4l-1.7 1.7M2.8 21.2h18.4"/>',
+    sunset:'<path d="M2.8 18.4h18.4M6.6 18.4a5.4 5.4 0 0 1 10.8 0"/><path d="M12 7.6V3.4M5.6 12.8l1.7-1.7M18.4 12.8l-1.7-1.7M2.8 21.2h18.4"/>',
+    moon:'<path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8Z"/>'
+  };
+  return '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths[kind] + '</svg>';
+}
+
+function closeTimePicker(){
+  if(TPOP && TPOP.el && TPOP.el.parentNode) TPOP.el.parentNode.removeChild(TPOP.el);
+  TPOP = null;
+}
+
+function applyTime(ref, val){
+  if(ref.indexOf('start:') === 0){
+    const di = Number(ref.split(':')[1]);
+    if(val !== 'auto' && state.plan[di]){ state.plan[di].start = Number(val); touch(); }
+    return;
+  }
+  const [di, ii] = ref.split(':').map(Number);
+  const it = state.plan[di] && state.plan[di].items[ii];
+  if(!it) return;
+  if(val === 'auto') it.at = null;
+  else { it.at = Number(val); if(it.type === 'meal') it.off = false; }
+  touch();
+}
+
+function openTimePicker(btn){
+  closeTimePicker();
+  const ref = btn.dataset.topen;
+  const isStart = ref.indexOf('start:') === 0;
+  const parts = ref.replace('start:', '').split(':').map(Number);
+  const cur = isStart ? state.plan[parts[0]].start
+    : (state.plan[parts[0]].items[parts[1]] || {}).at;
+  const shown = btn.querySelector('span');
+  const curShown = cur != null ? cur
+    : (shown && /^\d\d:\d\d$/.test(shown.textContent) ? toMin(shown.textContent) : null);
+
+  const nearest = (curShown == null) ? null
+    : TIMES.reduce((a,b) => Math.abs(b-curShown) < Math.abs(a-curShown) ? b : a, TIMES[0]);
+
+  const el = document.createElement('div');
+  el.className = 'timepop';
+  el.setAttribute('role', 'listbox');
+  el.setAttribute('aria-label', isStart ? 'Leave the hotel at' : 'Start time');
+  el.innerHTML = '<div class="tpop-head"><b>' + (isStart ? 'Leave the hotel' : 'Start time') + '</b><span>15-minute steps</span></div>' +
+    '<div class="tpop-list">' +
+    (isStart ? '' : '<button class="topt auto" data-tval="auto" role="option">' +
+      '<span class="ticon">' + tIcon('sun') + '</span><span class="tlabel">Auto</span>' +
+      '<span class="tsub">flow on</span></button>') +
+    TIMES.map(m => {
+      const p = timePeriod(m), sel = nearest === m;
+      return '<button class="topt' + (sel ? ' on' : '') + '" data-tval="' + m + '" role="option" aria-selected="' + sel + '">' +
+        '<span class="ticon">' + tIcon(periodIcon(p)) + '</span>' +
+        '<span class="tlabel">' + fmt(m) + '</span>' +
+        '<span class="tsub">' + p + '</span></button>';
+    }).join('') + '</div>';
+  document.body.appendChild(el);
+
+  const r = btn.getBoundingClientRect();
+  const w = 238;
+  el.style.width = w + 'px';
+  el.style.left = Math.max(10, Math.min(r.left, window.innerWidth - w - 10)) + 'px';
+  const room = window.innerHeight - r.bottom - 20;
+  const above = room < 260 && r.top > room;
+  el.style.maxHeight = Math.min(360, Math.max(200, above ? r.top - 18 : room)) + 'px';
+  el.style.top = above
+    ? Math.max(10, r.top - el.offsetHeight - 8) + 'px'
+    : (r.bottom + 8) + 'px';
+
+  el.addEventListener('click', e => {
+    const opt = e.target.closest('[data-tval]');
+    if(!opt) return;
+    applyTime(ref, opt.dataset.tval);
+    closeTimePicker();
+  });
+
+  TPOP = {el, btn};
+  const chosen = el.querySelector('.topt.on') || el.querySelector('.topt');
+  if(chosen){
+    const list = el.querySelector('.tpop-list');
+    list.scrollTop = Math.max(0, chosen.offsetTop - list.clientHeight/2 + chosen.offsetHeight/2);
+  }
+  const again = () => { const r2 = btn.getBoundingClientRect();
+    el.style.left = Math.max(10, Math.min(r2.left, window.innerWidth - w - 10)) + 'px';
+    el.style.top = (r2.bottom + 8) + 'px'; };
+  window.addEventListener('resize', again, {once:true});
+}
+
+/* ============================================================
    ADD-A-STOP SHEET
    ============================================================ */
 const PANEL_CATS = [['all','Everything'],['temple','Temples'],['food','Food'],['nature','Nature'],
@@ -612,7 +850,7 @@ function renderPanel(){
     const p = o.p, leg = o.leg;
     const dist = leg.dist ? leg.dist.toFixed(1) + ' km · ' : '';
     return '<div class="opt">' +
-      '<img src="img/' + p.id + '.jpg" alt="" loading="lazy">' +
+      '<img src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" loading="lazy" data-detail="' + p.id + '" role="button" tabindex="0">' +
       '<div><h4>' + esc(p.name) + '<span class="jp">' + esc(p.jp) + '</span>' +
         (idx < recCount ? '<span class="rec">Recommended</span>' : '') + '</h4>' +
         '<div class="bl">' + esc(p.blurb) + '</div>' +
@@ -693,8 +931,10 @@ function addStop(id){
    RENDER
    ============================================================ */
 function render(){
+  closeTimePicker();
   renderControls();
   renderDays();
+  renderEat();
   drawMap();
   renderMapChips();
   renderLegend();
@@ -828,23 +1068,6 @@ $('#daysHost').addEventListener('click', e => {
 $('#daysHost').addEventListener('change', e => {
   const t = e.target;
 
-  if(t.classList.contains('tin')){
-    const d = Number(t.dataset.day), i = Number(t.dataset.idx);
-    const it = state.plan[d].items[i];
-    if(!it) return;
-    if(!t.value){ it.at = null; touch(); return; }
-    it.at = toMin(t.value);
-    if(it.type === 'meal') it.off = false;
-    touch();
-    return;
-  }
-
-  if(t.classList.contains('dstart')){
-    const d = Number(t.dataset.day);
-    if(t.value){ state.plan[d].start = toMin(t.value); touch(); }
-    return;
-  }
-
   if(t.dataset.mealtoggle){
     const [d,i] = t.dataset.mealtoggle.split(':').map(Number);
     const it = state.plan[d].items[i];
@@ -902,6 +1125,27 @@ $('#mapScope').addEventListener('click', e => {
   drawMap(); renderMapChips(); renderLegend();
 });
 
+/* time picker */
+document.addEventListener('click', e => {
+  const trigger = e.target.closest('[data-topen]');
+  if(trigger){ openTimePicker(trigger); return; }
+  if(TPOP && !e.target.closest('.timepop')) closeTimePicker();
+});
+window.addEventListener('scroll', () => { if(TPOP) closeTimePicker(); }, {passive:true});
+
+/* place details */
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-dclose]')){ closeDetail(); return; }
+  const hit = e.target.closest('[data-detail]');
+  if(hit){ openDetail(hit.dataset.detail); }
+});
+document.addEventListener('keydown', e => {
+  if((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-detail][tabindex]')){
+    e.preventDefault();
+    openDetail(e.target.dataset.detail);
+  }
+});
+
 /* add-stop sheet */
 $('#addModal').addEventListener('click', e => {
   if(e.target.closest('[data-close]')){ closePanel(); return; }
@@ -913,7 +1157,12 @@ $('#addModal').addEventListener('click', e => {
   if(add){ addStop(add.dataset.add); return; }
 });
 $('#sheetSearch').addEventListener('input', e => { state.panelQuery = e.target.value; renderPanel(); });
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closePanel(); });
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Escape') return;
+  if(TPOP){ closeTimePicker(); return; }
+  if($('#detailModal').classList.contains('open')){ closeDetail(); return; }
+  closePanel();
+});
 
 /* ============================================================
    BOOT
