@@ -1,19 +1,20 @@
 /* ============================================================
    Fukuoka Itinerary Planner — styles
-   Neon glow in the background only · palette from omarchy-neon-glow
-   background #061214 · accent cyan #0acde9 · secondary pink #e37cbf
+   Paper white interface · ink black type · cornflower blue accent
+   The neon skyline (#1E0427 · #EAF2FF · #16E6FF) is the only glow,
+   and it sits behind the opening screen.
    Base type size is set by the A− / A / A+ control (html font-size)
    ============================================================ */
 :root{
-  --paper:#040e11; --paper2:#071619; --panel:rgba(6,19,22,.76); --panel2:rgba(9,27,31,.6);
-  --ink:#e7f6f8; --ink-soft:#b4c9cd; --ink-dim:#7e989d;
-  --line:rgba(190,222,230,.17); --line-soft:rgba(190,222,230,.09);
-  --blue:#0acde9; --blue-deep:#5ce3f5; --blue-ink:#a9f1fb;
-  --pink:#e37cbf;
-  --blue-soft:rgba(10,205,233,.12); --blue-wash:rgba(10,205,233,.05); --blue-line:rgba(140,205,218,.4);
+  --paper:#F6F3EB; --paper2:#EDE9DE; --panel:rgba(255,255,255,.93); --panel2:rgba(255,255,255,.66);
+  --ink:#14161A; --ink-soft:#3D434B; --ink-dim:#6B7279;
+  --line:rgba(20,22,26,.14); --line-soft:rgba(20,22,26,.075);
+  --blue:#6495ED; --blue-deep:#4B79D6; --blue-ink:#2C4F96;
+  --blue-soft:rgba(100,149,237,.14); --blue-wash:rgba(100,149,237,.055); --blue-line:rgba(100,149,237,.42);
+  --glow-deep:#1E0427; --glow-pale:#EAF2FF; --glow-cyan:#16E6FF;
   --radius:20px;
-  --shadow:0 18px 46px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);
-  --shadow-lg:0 40px 110px rgba(0,0,0,.66);
+  --shadow:0 14px 38px rgba(23,22,18,.1),inset 0 1px 0 rgba(255,255,255,.9);
+  --shadow-lg:0 34px 90px rgba(23,22,18,.24);
   --serif:"Cormorant Garamond",Georgia,"Times New Roman","Yu Mincho",serif;
   --sans:"Jost",ui-sans-serif,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans JP",sans-serif;
 }
@@ -22,26 +23,28 @@ html{font-size:17.5px;scroll-behavior:smooth;scroll-padding-top:96px}
 html,body{margin:0}
 body{
   background:
-    radial-gradient(1100px 620px at 84% -10%, rgba(227,124,191,.16), transparent 62%),
-    radial-gradient(900px 560px at 2% 14%, rgba(10,205,233,.15), transparent 60%),
-    linear-gradient(180deg,#040e11 0%,#061214 48%,#030b0d 100%);
+    radial-gradient(900px 520px at 90% 2%, rgba(100,149,237,.1), transparent 62%),
+    radial-gradient(760px 460px at 0% 34%, rgba(234,242,255,.8), transparent 60%),
+    var(--paper);
   color:var(--ink);
   font:400 1rem/1.62 var(--sans);
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
 }
-/* the whole Fukuoka drawing, kept intact, lit as neon lines */
-body::before{
-  content:"";position:fixed;inset:0;
-  background:url("img/skyline-neon.webp") center bottom / contain no-repeat;
-  opacity:.6;pointer-events:none;z-index:0;
+/* the neon skyline: the one glowing thing on the page, behind the hero */
+.night{
+  position:absolute;top:0;left:0;right:0;height:clamp(900px,120vh,1180px);
+  z-index:0;overflow:hidden;pointer-events:none;background:var(--glow-deep);
 }
-/* dark scrim + bloom so copy stays legible on top of the drawing */
-body::after{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+.night::before{
+  content:"";position:absolute;inset:0;
+  background:url("img/skyline-neon.webp") center bottom / cover no-repeat;
+}
+.night::after{
+  content:"";position:absolute;inset:0;
   background:
-    radial-gradient(58% 46% at 50% 104%, rgba(10,205,233,.16), transparent 72%),
-    linear-gradient(180deg,rgba(4,14,17,.92) 0%,rgba(4,14,17,.68) 18%,rgba(4,14,17,.58) 48%,rgba(4,14,17,.7) 80%,rgba(4,14,17,.9) 100%);
+    radial-gradient(62% 42% at 50% 92%, rgba(22,230,255,.22), transparent 72%),
+    linear-gradient(180deg,rgba(30,4,39,.45) 0%,rgba(30,4,39,0) 20%,rgba(246,243,235,0) 56%,rgba(246,243,235,.72) 80%,rgba(246,243,235,.97) 96%,var(--paper) 100%);
 }
 body.locked{overflow:hidden}
 header,main,footer,.hero,.highlights,.eat,.sechead{position:relative;z-index:1}
@@ -822,190 +825,200 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 }
 
 /* ============================================================
-   INTERFACE — calm surfaces on top of the neon skyline
-   The glow belongs to the background artwork only. Panels,
-   buttons and headings stay flat, quiet and readable.
-   Accent cyan #0acde9 · secondary pink #e37cbf, used sparingly.
+   INTERFACE — paper white, ink black, cornflower blue
+   Flat paper surfaces. No halo on panels, buttons or type.
    ============================================================ */
-::selection{background:rgba(10,205,233,.26);color:#f2feff}
-*{scrollbar-color:rgba(150,195,205,.32) transparent}
-::-webkit-scrollbar-thumb{background:rgba(150,195,205,.28);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
-::-webkit-scrollbar-thumb:hover{background:rgba(180,222,230,.45);background-clip:padding-box}
+::selection{background:rgba(100,149,237,.24);color:#14161A}
+*{scrollbar-color:rgba(20,22,26,.24) transparent}
+::-webkit-scrollbar-thumb{background:rgba(20,22,26,.18);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(20,22,26,.3);background-clip:padding-box}
 
 /* type */
-.sechead h2{color:#eff8fa}
-.eyebrow{color:#79cfdd}
-.sechead h2::after{background:linear-gradient(90deg,transparent,rgba(140,200,215,.6),transparent)}
-.hero-title em{color:#d9a2c6}
-.hljp,.dayhead h3 .jpname,.stopname .jp,.opt h4 .jp{color:#c9a2b8}
+.sechead h2{color:var(--ink)}
+.eyebrow{color:var(--blue-deep)}
+.sechead h2::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.hero-title em{color:var(--blue-deep)}
+.hljp,.dayhead h3 .jpname,.stopname .jp,.opt h4 .jp{color:var(--blue-deep)}
+.seclede{color:var(--ink-dim)}
 
 /* top bar */
-.top{background:rgba(6,17,20,.9);border-bottom:1px solid var(--line-soft);box-shadow:0 6px 22px rgba(0,0,0,.35)}
-.navlinks a:hover{border-bottom-color:rgba(150,205,218,.55);color:#eaf7f9}
-.mark{background:rgba(10,205,233,.08);border-color:var(--line);color:var(--blue-ink)}
-.brandtext .bn{color:#f0fafb}
-.stamp{background:transparent;border-color:var(--line);color:var(--blue-ink)}
-.textsize{background:rgba(255,255,255,.05);border-color:var(--line)}
+.top{background:rgba(246,243,235,.9);backdrop-filter:blur(16px) saturate(1.1);-webkit-backdrop-filter:blur(16px) saturate(1.1);
+  border-bottom:1px solid var(--line-soft);box-shadow:0 4px 18px rgba(20,22,26,.05)}
+.navlinks a{color:var(--ink-soft)}
+.navlinks a:hover{color:var(--blue-ink);border-bottom-color:var(--blue-line)}
+.mark{background:radial-gradient(circle at 50% 28%,rgba(100,149,237,.18),rgba(255,255,255,.85) 72%);border-color:var(--blue-line);color:var(--blue-ink)}
+.brandtext .bn{color:var(--ink)}
+.stamp{background:var(--blue-wash);border-color:var(--blue-line);color:var(--blue-ink)}
+.textsize{background:#fff;border-color:var(--line)}
 .textsize button{color:var(--ink-dim)}
-.textsize button[aria-pressed="true"]{background:rgba(255,255,255,.14);color:#f2fbfc}
-.ghost{background:transparent;border-color:var(--line);color:var(--ink-soft)}
-.ghost:hover{background:rgba(255,255,255,.07);border-color:rgba(190,222,230,.35);color:#fff}
+.textsize button[aria-pressed="true"]{background:var(--blue);color:#fff}
+.ghost{background:#fff;border-color:var(--line);color:var(--ink-soft)}
+.ghost:hover{background:var(--blue-wash);border-color:var(--blue-line);color:var(--blue-ink)}
 
-/* hero */
-.hero-inner{background:rgba(7,20,24,.74);border-color:var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 24px 60px rgba(0,0,0,.45)}
-.hero-media{background:#0a1a1e}
-.hero-media::after{background:linear-gradient(0deg,rgba(4,12,15,.88),rgba(4,12,15,.05) 46%,transparent 72%)}
-.hero-tag{background:rgba(4,14,17,.84);border-color:var(--line);box-shadow:0 8px 22px rgba(0,0,0,.4)}
+/* hero: paper glass over the neon skyline */
+.hero{padding-bottom:190px}
+.hero-inner{max-width:1180px;margin:0 auto;background:rgba(250,248,243,.9);border:1px solid rgba(255,255,255,.7);
+  backdrop-filter:blur(16px) saturate(1.05);-webkit-backdrop-filter:blur(16px) saturate(1.05);
+  box-shadow:0 30px 70px rgba(20,6,28,.32)}
+.hero-media{background:var(--paper2)}
+.hero-media::after{background:linear-gradient(0deg,rgba(20,22,26,.42),transparent 46%)}
+.hero-tag{background:rgba(255,255,255,.82);border-color:rgba(255,255,255,.7);box-shadow:0 10px 26px rgba(20,22,26,.16)}
 .hero-tag span{color:var(--blue-ink)}
-.hero-tag b{color:#f0fafb}
-.cta{background:#0f9db2;color:#02181c;box-shadow:0 10px 26px rgba(0,0,0,.4)}
-.cta:hover{background:#18b3c8;color:#02181c;box-shadow:0 12px 30px rgba(0,0,0,.45)}
-.hero-meta b{color:#eff9fa}
+.hero-tag b{color:var(--ink)}
+.hero-lede{color:var(--ink-soft)}
+.cta{background:linear-gradient(180deg,#6F9CF2,#4B79D6);color:#fff;box-shadow:0 12px 26px rgba(75,121,214,.28)}
+.cta:hover{color:#fff;box-shadow:0 16px 32px rgba(75,121,214,.34)}
+.cta-ghost{color:var(--ink-soft);border-bottom-color:var(--line)}
+.hero-meta b{color:var(--ink)}
 
 /* highlight and eating cards */
-.hl,.eatcard,.eatpic,.ph,.althumb,.opt.osmopt img,.hlpic{background-color:#0a1a1e}
-.hl,.eatcard{background:rgba(8,22,26,.8);border-color:var(--line-soft);box-shadow:0 10px 26px rgba(0,0,0,.32)}
-.hl:hover,.eatcard:hover{border-color:rgba(190,222,230,.3);box-shadow:0 16px 40px rgba(0,0,0,.42)}
-.hl h3,.eatname,.opt h4{color:#f0fafb}
-.pill{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--ink-soft)}
-.eatbadge{background:rgba(4,14,17,.84);border:1px solid var(--line);color:var(--blue-ink)}
-.opt .rec{background:#0f9db2;color:#02181c}
+.hl,.eatcard{background:var(--panel);border-color:var(--line-soft);box-shadow:0 8px 22px rgba(20,22,26,.06)}
+.hl:hover,.eatcard:hover{border-color:var(--blue-line);box-shadow:var(--shadow)}
+.hl h3,.eatname,.opt h4{color:var(--ink)}
+.pill{background:var(--blue-soft);border-color:var(--blue-line);color:var(--blue-ink)}
+.eatbadge{background:rgba(255,255,255,.9);border:1px solid var(--line-soft);color:var(--blue-ink)}
+.opt .rec{background:var(--blue-deep);color:#fff}
 
 /* panels and controls */
-.panel{background:rgba(6,19,23,.84);border-color:var(--line-soft);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-aside.panel{box-shadow:0 18px 46px rgba(0,0,0,.42)}
-.label{color:var(--blue-ink)}
-.daysrow button,.durline button,.rowtools button,.rowtools select,.chip,.hotel,.search,.timebtn,.hotellist{background-color:rgba(255,255,255,.045)}
-.daysrow input{background:rgba(255,255,255,.06);border-color:var(--line);color:var(--ink)}
-.search:focus{box-shadow:0 0 0 2px rgba(140,200,215,.35)}
-.hotelnow{background:rgba(10,205,233,.07);border-color:var(--line);box-shadow:none}
-.hotelnow b{color:#f0fafb}
-.hotel:hover{background-color:rgba(255,255,255,.08);border-color:rgba(190,222,230,.3)}
-.hotel.on{background-color:rgba(10,205,233,.14);border-color:rgba(140,200,215,.55);box-shadow:none}
-.hotel.on .hname{color:#f0fafb}
-.chip[aria-pressed="true"]{background:#0f9db2;border-color:#2bb6c9;color:#02181c}
-.chip[aria-pressed="true"] .jp{opacity:.72}
-.osmflag{background:rgba(255,255,255,.08);color:var(--ink-soft)}
-.go{background:#0f9db2;color:#02181c;box-shadow:0 10px 26px rgba(0,0,0,.38)}
-.go:hover{background:#18b3c8;box-shadow:0 12px 30px rgba(0,0,0,.42)}
-.notice{background:rgba(255,255,255,.04);border-color:var(--line-soft)}
-.notice b{color:#eaf7f9}
+.panel{background:var(--panel);border-color:var(--line-soft)}
+aside.panel{box-shadow:var(--shadow)}
+.label{color:var(--blue-deep)}
+.daysrow button,.durline button,.rowtools button,.chip,.hotel,.search,.timebtn,.mchip,.textsize{background:#fff}
+.daysrow input{background:#fff;border-color:var(--line);color:var(--ink)}
+.search:focus{box-shadow:0 0 0 3px rgba(100,149,237,.18)}
+.hotelnow{background:var(--blue-wash);border-color:var(--blue-line)}
+.hotelnow b{color:var(--ink)}
+.hotel:hover{background:var(--blue-wash);border-color:var(--blue-line)}
+.hotel.on{background:var(--blue-soft);border-color:var(--blue)}
+.hotel.on .hname{color:var(--blue-ink)}
+.chip[aria-pressed="true"],.mchip[aria-pressed="true"],.sheet-tab[aria-pressed="true"]{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
+.osmflag{background:var(--blue-wash);color:var(--blue-ink)}
+.go{background:linear-gradient(180deg,#6F9CF2,#4B79D6);color:#fff;box-shadow:0 12px 26px rgba(75,121,214,.24)}
+.go:hover{box-shadow:0 16px 32px rgba(75,121,214,.3)}
+.notice{background:#fff;border-color:var(--line-soft)}
+.notice b{color:var(--ink)}
 
-/* map — dark tiles, and the only glow left in the interface: the labels */
-#map{background:#041014;border-color:var(--line-soft);box-shadow:inset 0 0 30px rgba(0,0,0,.5)}
-.leaflet-tile-pane{filter:invert(1) hue-rotate(190deg) saturate(.42) brightness(.92) contrast(.9)}
-.mchip{background:rgba(255,255,255,.05);border-color:var(--line-soft);color:var(--ink-soft)}
-.mchip[aria-pressed="true"]{background:#0f9db2;border-color:#2bb6c9;color:#02181c}
-.leaflet-popup-content-wrapper{background:rgba(6,20,24,.95);color:var(--ink);border:1px solid rgba(10,205,233,.42);
-  box-shadow:0 20px 52px rgba(0,0,0,.6),0 0 26px rgba(10,205,233,.22)}
-.leaflet-popup-tip{background:rgba(6,20,24,.95);border:1px solid rgba(10,205,233,.42);box-shadow:0 0 18px rgba(10,205,233,.2)}
-.leaflet-popup-content .pj{color:#f2feff;text-shadow:0 0 16px rgba(10,205,233,.55)}
-.leaflet-container{background:#041014}
-.leaflet-tooltip{background:rgba(6,20,24,.95);border-color:rgba(10,205,233,.42);color:#eafdff;
-  box-shadow:0 6px 18px rgba(0,0,0,.5),0 0 18px rgba(10,205,233,.3);text-shadow:0 0 12px rgba(10,205,233,.5)}
-.leaflet-tooltip-top:before{border-top-color:rgba(6,20,24,.95)}
-.leaflet-bar a{background:rgba(6,20,24,.94);color:var(--ink);border-bottom-color:var(--line-soft)}
-.leaflet-bar a:hover{background:rgba(255,255,255,.1);color:#fff}
-.leaflet-control-attribution{background:rgba(4,14,17,.82)!important;color:var(--ink-dim)!important}
-.leaflet-control-attribution a{color:var(--blue-ink)!important}
-.pin{color:#02181c;border:2px solid rgba(3,12,14,.9);font-weight:700;box-shadow:0 3px 10px rgba(0,0,0,.55)}
-.pin.base{background:#e37cbf;color:#1a0714}
+/* map — paper tiles; the labels keep their neon halo */
+#map{background:#FBFAF6;border-color:var(--line-soft);box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+.leaflet-tile-pane{filter:none}
+.leaflet-container{background:#FBFAF6}
+.leaflet-popup-content-wrapper{background:rgba(255,255,255,.96);color:var(--ink);border:1px solid var(--blue-line);
+  box-shadow:0 18px 44px rgba(20,22,26,.18),0 0 22px rgba(22,230,255,.22)}
+.leaflet-popup-tip{background:#fff;border:1px solid var(--blue-line);box-shadow:0 0 14px rgba(22,230,255,.2)}
+.leaflet-popup-content .pj{color:var(--ink);text-shadow:0 0 14px rgba(22,230,255,.5)}
+.leaflet-tooltip{background:rgba(255,255,255,.96);border-color:var(--blue-line);color:var(--ink);
+  box-shadow:0 8px 20px rgba(20,22,26,.14),0 0 16px rgba(22,230,255,.28);text-shadow:0 0 12px rgba(22,230,255,.45)}
+.leaflet-tooltip-top:before{border-top-color:rgba(255,255,255,.96)}
+.leaflet-bar a{background:#fff;color:var(--ink);border-bottom-color:var(--line-soft)}
+.leaflet-bar a:hover{background:var(--blue-wash);color:var(--blue-ink)}
+.leaflet-control-attribution{background:rgba(255,255,255,.86)!important;color:var(--ink-dim)!important}
+.pin{color:#fff;border:2px solid #fff;font-weight:600;box-shadow:0 3px 10px rgba(20,22,26,.35)}
+.pin.base{background:var(--ink);color:#fff}
 
 /* days and timeline */
-.dayhead{background:rgba(255,255,255,.04);border-bottom-color:var(--line-soft)}
-.daynum{color:#03181c;text-shadow:none}
-.addstop{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--ink-soft)}
-.addstop:hover{background:#0f9db2;border-color:#2bb6c9;color:#02181c}
+.dayhead{background:linear-gradient(180deg,var(--blue-wash),#fff);border-bottom-color:var(--line-soft)}
+.daynum{color:#fff}
+.addstop{background:var(--blue-wash);border-color:var(--blue-line);color:var(--blue-ink)}
+.addstop:hover{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
 .tl .row{border-top-color:var(--line-soft)}
-.timebtn svg{color:#6fc6d4}
-.timebtn:hover{background:rgba(255,255,255,.07);border-color:rgba(190,222,230,.35);color:#fff}
-.timebtn:focus-visible{box-shadow:0 0 0 2px rgba(140,200,215,.4)}
-.ph{border-color:var(--line-soft)}
-.stopname{color:#f0fafb}
-.tag{background:rgba(255,255,255,.06);color:var(--ink-soft)}
-.leg{background:rgba(255,255,255,.04);border-color:var(--line-soft);color:var(--ink-soft)}
+.timebtn svg{color:var(--blue)}
+.timebtn:hover{background:var(--blue-wash);border-color:var(--blue);color:var(--blue-ink)}
+.timebtn:focus-visible{box-shadow:0 0 0 3px rgba(100,149,237,.2)}
+.stopname{color:var(--ink)}
+.tag{background:var(--blue-wash);color:var(--blue-ink);border-color:var(--blue-line)}
+.leg{background:var(--blue-wash);border-color:var(--blue-line);color:var(--ink-soft)}
 .leg b{color:var(--blue-ink)}
-.tip{background:rgba(255,255,255,.035);color:var(--ink-soft)}
-.tip b{color:#eaf7f9}
-.mealrow{background:rgba(10,205,233,.05)}
-.mealpick{background-color:rgba(9,24,28,.9);border-color:var(--line-soft)}
-.mealpick:hover{border-color:rgba(190,222,230,.35)}
-.dropend{border-top-color:var(--line)}
-.retline{background:rgba(255,255,255,.035);color:var(--ink-soft)}
-.extra{background:rgba(10,205,233,.1);border-color:rgba(10,205,233,.3);color:var(--blue-ink)}
-.extra.warn,.verdict.warn{background:rgba(243,167,107,.14);border-color:rgba(243,167,107,.45);color:#ffd3a6}
-.alts li{background:rgba(255,255,255,.035);border-color:var(--line-soft)}
+.tip{background:#fff;color:var(--ink-soft)}
+.tip b{color:var(--ink)}
+.mealrow{background:linear-gradient(90deg,var(--blue-wash),#fff 70%)}
+.mealpick{background:#fff;border-color:var(--blue-line)}
+.mpbody b{color:var(--blue-ink)}
+.retline{background:#fff;color:var(--ink-soft)}
+.extra{background:var(--blue-wash);border-color:var(--blue-line);color:var(--blue-ink)}
+.extra.warn,.verdict.warn{background:#FFF6E6;border-color:#E4C58F;color:#6F4C10}
+.alts li{background:#fff;border-color:var(--line-soft)}
 
 /* summary cards */
-.money{color:#f0fafb}
-.rows li,.ptable th,.ptable td{border-bottom-color:var(--line-soft)}
-.verdict{background:rgba(10,205,233,.09);border-color:rgba(10,205,233,.28);color:var(--blue-ink)}
-.verdict.note{background:rgba(255,255,255,.035);border-color:var(--line-soft);color:var(--ink-soft)}
-.ptable .good{color:#8fe3bd}
-.ptable .bad{color:#ff9f86}
+.money{color:var(--ink)}
+.verdict{background:var(--blue-wash);border-color:var(--blue-line);color:var(--blue-ink)}
+.verdict.note{background:#fff;border-color:var(--line-soft);color:var(--ink-soft)}
+.ptable .good{color:#2C6B48}
+.ptable .bad{color:#9A4B2C}
 .foot a{border-bottom-color:var(--line-soft)}
-.foot a:hover{color:var(--blue-deep)}
+.foot a:hover{color:var(--blue-ink)}
 .endbar{border-top-color:var(--line-soft)}
 
-/* ---------- popups: liquid glass, centred, no halo ---------- */
-.detail-back{background:rgba(3,10,13,.66);backdrop-filter:blur(18px) saturate(1.15)}
-.modal-back{background:rgba(3,10,13,.56);backdrop-filter:blur(9px)}
-.glass,.sheet,.timepop{
-  background:
-    linear-gradient(135deg,rgba(150,240,250,.13),rgba(255,255,255,.03) 40%,rgba(227,124,191,.1) 78%,rgba(255,255,255,.04)),
-    linear-gradient(180deg,rgba(7,20,24,.9),rgba(5,15,19,.95));
-  backdrop-filter:blur(28px) saturate(1.45);
-  -webkit-backdrop-filter:blur(28px) saturate(1.45);
-  border:1px solid rgba(200,238,244,.26);
-  box-shadow:0 34px 90px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.34),inset 0 -1px 0 rgba(255,255,255,.08);
+/* the day picker in a stop row, and its menu */
+.rowtools .daypick{
+  display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px 0 12px;
+  border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink-soft);
+  font-size:.66rem;letter-spacing:.04em;transition:.16s;
 }
-.glass::before,.sheet::before,.timepop::before{
+.rowtools .daypick svg{color:var(--blue);flex:0 0 auto}
+.rowtools .daypick:hover,.rowtools .daypick:focus-visible{outline:none;border-color:var(--blue);background:var(--blue-wash);color:var(--blue-ink)}
+.daypop .tpop-list{gap:3px;padding:2px}
+.dayopt{grid-template-columns:34px minmax(0,1fr)}
+.dayopt-text{display:flex;flex-direction:column;gap:1px;min-width:0}
+.dayopt .ticon{font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
+.dayopt.on .ticon{background:var(--blue-deep);color:#fff}
+
+/* ---------- popups: liquid glass on paper, still centred ---------- */
+.modal-back{background:rgba(20,22,26,.3);backdrop-filter:blur(10px)}
+.detail-back{background:radial-gradient(760px 520px at 50% 26%,rgba(100,149,237,.2),rgba(20,22,26,.44) 78%);backdrop-filter:blur(18px) saturate(1.1)}
+.glass,.sheet,.timepop{
+  background:linear-gradient(150deg,rgba(255,255,255,.93),rgba(252,251,247,.86) 55%,rgba(238,244,255,.9));
+  backdrop-filter:blur(30px) saturate(1.4);-webkit-backdrop-filter:blur(30px) saturate(1.4);
+  border:1px solid rgba(255,255,255,.88);
+  box-shadow:0 34px 90px rgba(23,22,18,.24),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -26px 60px rgba(100,149,237,.07);
+}
+.sheet{animation:sheetIn .34s cubic-bezier(.2,1.2,.4,1)}
+@keyframes sheetIn{from{opacity:0;transform:translate(-50%,-47%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
+.sheet::before,.timepop::before{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
   background:
-    radial-gradient(120% 78% at 12% -12%,rgba(255,255,255,.14),transparent 58%),
-    radial-gradient(90% 62% at 92% 110%,rgba(227,124,191,.12),transparent 64%),
-    linear-gradient(118deg,transparent 38%,rgba(255,255,255,.05) 46%,transparent 54%);
+    radial-gradient(120% 78% at 12% -12%,rgba(255,255,255,.9),transparent 58%),
+    radial-gradient(90% 62% at 92% 110%,rgba(100,149,237,.12),transparent 64%),
+    linear-gradient(118deg,transparent 38%,rgba(255,255,255,.45) 46%,transparent 54%);
 }
-/* the refracted rim */
-.glass::after,.sheet::after,.timepop::after{
+.sheet::after,.timepop::after,.glass::after{
   content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;padding:1.2px;
-  background:linear-gradient(150deg,rgba(255,255,255,.7),rgba(10,205,233,.35) 32%,rgba(255,255,255,.1) 54%,rgba(227,124,191,.35) 78%,rgba(255,255,255,.6));
+  background:linear-gradient(150deg,rgba(255,255,255,.95),rgba(100,149,237,.45) 32%,rgba(255,255,255,.35) 54%,rgba(22,230,255,.4) 78%,rgba(255,255,255,.9));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;
   mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   mask-composite:exclude;
-  opacity:.55;
+  opacity:.6;
 }
-.sheet{border-radius:28px;animation:sheetIn .34s cubic-bezier(.2,1.2,.4,1)}
-@keyframes sheetIn{from{opacity:0;transform:translate(-50%,-47%) scale(.97)}to{opacity:1;transform:translate(-50%,-50%)}}
-.glass-x,.sheet-x{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.28);color:#eafdff;backdrop-filter:blur(10px);z-index:4}
-.glass-x:hover,.sheet-x:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.45);color:#fff}
-.sheet-head{border-bottom-color:var(--line-soft)}
-.sheet-head h3{color:#f2feff}
-.sheet-head p{color:var(--ink-soft)}
-.sheet-tab{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--ink-soft)}
-.sheet-tab[aria-pressed="true"]{background:#0f9db2;border-color:#2bb6c9;color:#02181c}
-.sheet-filters,.sheet-searchwrap{border-color:var(--line-soft)}
+.glass-x,.sheet-x{background:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.9);color:var(--ink);backdrop-filter:blur(10px);z-index:4;box-shadow:0 8px 20px rgba(23,22,18,.14)}
+.glass-x:hover,.sheet-x:hover{background:#fff;color:var(--blue-ink)}
+.sheet-head h3{color:var(--ink)}
+.sheet-head p{color:var(--ink-dim)}
+.sheet-tab{background:#fff;border-color:var(--line);color:var(--ink-dim)}
 .opt{border-bottom-color:var(--line-soft)}
 .opt .bl,.opt .legline{color:var(--ink-soft)}
-.opt .addto{background:rgba(255,255,255,.06);color:var(--ink-soft)}
-.opt .addto:hover{background:#0f9db2;border-color:#2bb6c9;color:#02181c}
-.glass-scroll{scrollbar-color:rgba(150,195,205,.35) transparent}
-.dchip{background:rgba(255,255,255,.07);border-color:var(--line);color:var(--ink-soft)}
-.dnote{background:rgba(10,205,233,.08);border-color:rgba(10,205,233,.24);color:var(--ink-soft)}
-.dnote b{color:#eaf7f9}
+.opt .addto{background:var(--blue-wash);border-color:var(--blue-line);color:var(--blue-ink)}
+.opt .addto:hover{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
+.opt.osmopt img{object-fit:cover;padding:0;cursor:zoom-in}
+.opt.osmopt.nopic img{object-fit:contain;padding:6px;cursor:default}
+.glass-scroll{scrollbar-color:rgba(20,22,26,.2) transparent}
+.dchip{background:rgba(255,255,255,.85);border-color:var(--blue-line);color:var(--blue-ink)}
+.dnote{background:rgba(100,149,237,.08);border-color:var(--blue-line);color:var(--blue-ink)}
+.dnote b{color:var(--blue-ink)}
 .dgtile img{border-color:var(--line-soft)}
-.dgtile:hover img{box-shadow:0 10px 26px rgba(0,0,0,.45)}
-.dherotxt h2{text-shadow:0 2px 22px rgba(0,0,0,.7)}
-.dsection h4{color:var(--blue-ink)}
-.topt:hover{background:rgba(255,255,255,.06)}
-.ticon{background:rgba(255,255,255,.07);color:var(--ink-soft)}
-.topt.on{background:rgba(10,205,233,.14)}
-.topt.on .tlabel{color:#eafdff}
-.topt.on .ticon{background:#0f9db2;color:#02181c}
+.dgtile:hover img{box-shadow:0 10px 24px rgba(23,22,18,.16)}
+.topt:hover{background:var(--blue-wash)}
+.ticon{background:#fff;color:var(--ink-soft)}
+.topt.on{background:var(--blue-soft)}
+.topt.on .tlabel{color:var(--blue-ink)}
+.topt.on .ticon{background:var(--blue-deep);color:#fff;box-shadow:none}
 .topt.auto{border-bottom-color:var(--line-soft)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .glass,.sheet,.timepop,.panel,.hero-inner{background:rgba(5,17,20,.97)}
+  .glass,.sheet,.timepop,.panel,.hero-inner{background:rgba(255,255,255,.97)}
+}
+
+/* the opening screen needs a little more room for the skyline on small screens */
+@media (max-width:1080px){
+  .hero{padding-bottom:180px}
 }
 
 /* ---------- print ---------- */
@@ -1013,7 +1026,7 @@ aside.panel{box-shadow:0 18px 46px rgba(0,0,0,.42)}
   :root{--paper:#fff;--paper2:#fff;--panel:#fff;--panel2:#fff;--ink:#111;--ink-soft:#3a3a3a;--ink-dim:#666;
     --line:#ddd;--line-soft:#e6e6e6;--blue:#31589f;--blue-deep:#31589f;--blue-ink:#31589f;--blue-soft:#fff;--blue-wash:#fff;--blue-line:#ddd;}
   body{background:#fff;color:#111}
-  body::before,body::after{display:none}
+  body::before,body::after,.night{display:none}
   .top,.hero,.highlights,.eat,.endbar,.rowtools,.rowgrip,.controls,.mapwrap,.dropend,.mealcheck,.mealpick{display:none!important}
   .sechead{padding:0 0 12px;text-align:left}
   .sechead h2{font-size:1.4rem;color:#111}

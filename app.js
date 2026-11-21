@@ -198,6 +198,34 @@ function useOSMHotel(it){
   generate(); MAPSCOPE = 'auto'; render();
 }
 
+/* live OSM and Wikipedia rows borrow the photograph of the same place
+   from the curated list, so a result never comes up as a blank card */
+function plainName(v){
+  return (v || '').toLowerCase().replace(/[^a-z0-9\u3040-\u30ff\u4e00-\u9faf]/g, '');
+}
+function photoForLive(name, lat, lon){
+  const n = plainName(name);
+  if(n.length > 2){
+    const hit = POIS.find(p => {
+      const pn = plainName(p.name);
+      if(!pn) return false;
+      if(pn === n) return true;
+      return n.length > 5 && pn.length > 5 && (pn.indexOf(n) === 0 || n.indexOf(pn) === 0);
+    });
+    if(hit) return photoOf(hit);
+  }
+  if(typeof lat === 'number' && typeof lon === 'number'){
+    let best = null, bd = 1e9;
+    POIS.forEach(p => {
+      if(typeof p.lat !== 'number') return;
+      const d = haversine({lat, lon}, p);
+      if(d < bd){ bd = d; best = p; }
+    });
+    if(best && bd < 0.4) return photoOf(best);
+  }
+  return 'img/place-unknown.svg';
+}
+
 function livePlaceHtml(from){
   const q = state.panelQuery.trim();
   if(q.length < 2) return '';
@@ -210,8 +238,9 @@ function livePlaceHtml(from){
     mapsSearch(q + ' Fukuoka') + '" target="_blank" rel="noopener">search Google Maps</a>.</p>';
   else if(box.status === 'done') body = box.items.map((it, i) => {
     const leg = travel(from, {lat:it.lat, lon:it.lon, area:it.area}, hotel().hub);
-    return '<div class="opt osmopt">' +
-      '<img src="img/place-unknown.svg" alt="" loading="lazy">' +
+    const osmPic = photoForLive(it.name, it.lat, it.lon);
+    return '<div class="opt osmopt' + (osmPic === 'img/place-unknown.svg' ? ' nopic' : '') + '">' +
+      '<img src="' + osmPic + '" alt="" loading="lazy">' +
       '<div><h4>' + esc(it.name) + (it.jp ? '<span class="jp">' + esc(it.jp) + '</span>' : '') +
         '<span class="osmflag">OSM</span></h4>' +
         '<div class="bl">' + esc(it.kind) + (it.addr ? ' · ' + esc(it.addr) : '') + '</div>' +
@@ -235,7 +264,7 @@ function osmToPOI(it){
     lat:it.lat, lon:it.lon, dwell:60, fee:0,
     blurb: it.kind + (it.addr ? ' at ' + it.addr : '') + '. Found through the live OpenStreetMap search.',
     tip: 'Opening hours and prices are not listed for this one — check before you go.',
-    photo: 'img/place-unknown.svg', osm: true, osmUrl: it.url
+    photo: photoForLive(it.name, it.lat, it.lon), osm: true, osmUrl: it.url
   };
   return id;
 }
@@ -330,7 +359,7 @@ function wikiHtml(day){
   const rows = WIKI.items.map((it, i) => {
     const leg = travel(anchor, {lat:it.lat, lon:it.lon, area:areaNear(it.lat, it.lon)}, hotel().hub);
     return '<div class="opt wikiopt">' +
-      '<img src="' + (it.thumb || 'img/place-unknown.svg') + '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
+      '<img src="' + (it.thumb || photoForLive(it.title, it.lat, it.lon)) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' +
       '<div><h4>' + esc(it.title) + '<span class="osmflag">Wiki</span></h4>' +
         '<div class="bl">' + esc(it.extract || 'A sight Wikipedia lists near this part of the trip.') + '</div>' +
         '<div class="legline">' + (leg.dist ? leg.dist.toFixed(1) + ' km · ' : '') +
@@ -350,7 +379,7 @@ function wikiToPOI(it){
     lat: it.lat, lon: it.lon, dwell: 60, fee: 0,
     blurb: it.extract || 'A sight listed on Wikipedia near this part of the trip.',
     tip: 'Opening hours and prices are not listed here — check before you go.',
-    photo: it.thumb || 'img/place-unknown.svg', wiki: true, wikiUrl: it.url
+    photo: it.thumb || photoForLive(it.title, it.lat, it.lon), wiki: true, wikiUrl: it.url
   };
   return id;
 }
@@ -516,7 +545,7 @@ function renderControls(){
 /* ============================================================
    RENDER — days
    ============================================================ */
-const DAYCOL = ['#0acde9','#e37cbf','#83ce6e','#dd97f7','#e2af27','#83bdf8'];
+const DAYCOL = ['#3F6FCB','#6A3F86','#2C4F96','#5B86DE','#1E0427','#2F7E8E'];
 
 function altsFor(p){
   const rows = [];
@@ -635,9 +664,9 @@ function stopRow(r, dayIdx){
     '<div class="rowtools">' +
       '<button data-move="-1" data-day="' + dayIdx + '" data-idx="' + r.idx + '" aria-label="Move up">↑</button>' +
       '<button data-move="1" data-day="' + dayIdx + '" data-idx="' + r.idx + '" aria-label="Move down">↓</button>' +
-      '<select data-moveto="' + dayIdx + ':' + r.idx + '" aria-label="Move to another day">' +
-        state.plan.map((d,i) => '<option value="' + i + '">Day ' + (i+1) + '</option>').join('') +
-      '</select>' +
+      '<button class="daypick" data-daymenu="' + dayIdx + ':' + r.idx + '" aria-haspopup="listbox" aria-label="Move ' + esc(p.name) + ' to another day">' +
+        'Day ' + (dayIdx+1) + '<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+      '</button>' +
       '<button data-remove="' + dayIdx + ':' + r.idx + '" aria-label="Remove this stop">×</button>' +
     '</div>' +
   '</li>';
@@ -1049,6 +1078,7 @@ function closeDetail(){
    TIME PICKER — rounded list, one pill per time
    ============================================================ */
 let TPOP = null;
+let DPOP = null;
 
 const TIMES = (() => { const out = []; for(let m = 5*60; m <= 23*60+45; m += 15) out.push(m); return out; })();
 const timePeriod = m => m < 7*60 ? 'Early' : m < 11*60 ? 'Morning' : m < 14*60 ? 'Midday'
@@ -1069,6 +1099,42 @@ function tIcon(kind){
 function closeTimePicker(){
   if(TPOP && TPOP.el && TPOP.el.parentNode) TPOP.el.parentNode.removeChild(TPOP.el);
   TPOP = null;
+}
+
+function closeDayMenu(){
+  if(DPOP && DPOP.parentNode) DPOP.parentNode.removeChild(DPOP);
+  DPOP = null;
+}
+
+/* the Day 1 / Day 2 menu: the same liquid-glass popover as the time picker */
+function openDayMenu(btn){
+  closeDayMenu();
+  const [d, i] = btn.dataset.daymenu.split(':').map(Number);
+  const el = document.createElement('div');
+  el.className = 'timepop daypop';
+  el.setAttribute('role', 'listbox');
+  el.setAttribute('aria-label', 'Move to another day');
+  el.innerHTML = '<div class="tpop-head"><b>Move to another day</b><span>' + state.plan.length + ' days</span></div>' +
+    '<div class="tpop-list">' +
+    state.plan.map((day, k) => {
+      const n = day.items.filter(x => x.type === 'stop').length;
+      const kind = day.kind === 'trip' ? 'Day trip' : 'City day';
+      return '<button class="topt dayopt' + (k === d ? ' on' : '') + '" data-daymove="' + d + ':' + i + ':' + k + '" role="option" aria-selected="' + (k === d) + '">' +
+        '<span class="ticon">' + (k+1) + '</span>' +
+        '<span class="dayopt-text"><span class="tlabel">Day ' + (k+1) + '</span>' +
+        '<span class="tsub">' + kind + ' · ' + n + ' stops</span></span></button>';
+    }).join('') + '</div>';
+  document.body.appendChild(el);
+  el.style.width = 'min(340px, calc(100vw - 36px))';
+  el.style.maxHeight = Math.min(460, window.innerHeight - 90) + 'px';
+  el.addEventListener('click', e => {
+    const opt = e.target.closest('[data-daymove]');
+    if(!opt) return;
+    const [fromD, fromI, toD] = opt.dataset.daymove.split(':').map(Number);
+    closeDayMenu();
+    if(toD !== fromD) moveItem(fromD, fromI, toD, state.plan[toD].items.length);
+  });
+  DPOP = el;
 }
 
 function applyTime(ref, val){
@@ -1479,9 +1545,15 @@ $('#mapScope').addEventListener('click', e => {
 document.addEventListener('click', e => {
   const trigger = e.target.closest('[data-topen]');
   if(trigger){ openTimePicker(trigger); return; }
+  const dayTrigger = e.target.closest('[data-daymenu]');
+  if(dayTrigger){ openDayMenu(dayTrigger); return; }
   if(TPOP && !e.target.closest('.timepop')) closeTimePicker();
+  if(DPOP && !e.target.closest('.daypop')) closeDayMenu();
 });
-window.addEventListener('scroll', () => { if(TPOP) closeTimePicker(); }, {passive:true});
+window.addEventListener('scroll', () => {
+  if(TPOP) closeTimePicker();
+  if(DPOP) closeDayMenu();
+}, {passive:true});
 
 /* place details */
 document.addEventListener('click', e => {
@@ -1538,3 +1610,14 @@ try {
 applyScale();
 generate();
 render();
+
+/* the neon skyline band runs from the top of the page to the foot of the hero */
+function sizeNight(){
+  const night = document.querySelector('.night');
+  const hero = document.querySelector('.hero');
+  if(!night || !hero) return;
+  night.style.height = Math.round(hero.getBoundingClientRect().bottom + window.scrollY) + 'px';
+}
+window.addEventListener('resize', sizeNight);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(sizeNight);
+sizeNight();

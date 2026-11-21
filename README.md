@@ -10,10 +10,10 @@ retimed or stretched by hand.
 | File | What it is |
 | --- | --- |
 | `index.html` | Page markup only |
-| `styles.css` | All styling (calm dark interface, neon skyline backdrop, liquid-glass popups; Cormorant + Jost) |
+| `styles.css` | All styling (paper-white interface in ink and cornflower blue, neon skyline band behind the opening screen, liquid-glass popups; Cormorant + Jost) |
 | `data.js` | Places, hotels, day-trip fares, fare tables, route ordering |
 | `app.js` | Planner engine, rendering, drag-and-drop, editing, live place search |
-| `img/` | 100 photographs from Wikimedia Commons, plus the neon skyline backdrop and placeholder |
+| `img/` | 100+ photographs from Wikimedia Commons, plus the neon skyline backdrop and placeholder |
 | `skyline-drawing.py` | The script that draws the original vector skyline (kept for provenance) |
 
 No build step: open `index.html` with the folder next to it. Plain scripts, so `file://`
@@ -55,25 +55,30 @@ and Wikivoyage. Photographs: Wikimedia Commons, freely licensed.
 
 ## Look
 
-The neon glow belongs to the background only. A fixed, full-page backdrop of the Fukuoka
-line art, recoloured from the cyberpunk palette of
-[omarchy-neon-glow](https://github.com/erikrjohansson/omarchy-neon-glow-theme) (MIT) —
-deep `#061214`, cyan `#0acde9`, pink `#e37cbf` — carries the night-city glow, while the
-interface on top stays calm: flat dark surfaces, quiet borders, no halos on type, buttons
-or cards. The map is the one deliberate exception; its tiles are inverted so the street
-labels sit on a dark surface and the labels themselves keep a soft glow.
+The interface is paper: warm white surfaces, ink-black type and a cornflower
+blue (`#6495ED`) accent. Nothing in the interface glows. The one glowing thing
+on the page is the artwork behind the opening screen.
 
-Every popup — the place detail sheet, the add-a-stop sheet and the time picker — opens in
-the centre of the screen and is liquid glass in the spirit of
-[liquid-glass-js](https://github.com/dashersw/liquid-glass-js) (MIT): a tinted, blurred
-backdrop with a refracting rim and a specular sheen. It is rebuilt in plain CSS rather
-than WebGL so the sheets stay scrollable, selectable and fast, and it falls back to opaque
-panels where `backdrop-filter` is unavailable. Dropdowns are rounded pills with the same
-chevron, never the operating system's square menu.
+That artwork is the supplied Fukuoka line drawing, recoloured with a vertical
+gradient through the three neon colours — deep violet `#1E0427`, pale
+`#EAF2FF` and cyan `#16E6FF` — with a bloom on every line. It sits behind the
+hero and dissolves into the paper page at its foot, so the planner below reads
+as flat paper cards.
+
+Every popup — the place detail sheet, the add-a-stop sheet, the time picker and
+the Day 1 / Day 2 menu — opens in the centre of the screen and is liquid glass
+in the spirit of [liquid-glass-js](https://github.com/dashersw/liquid-glass-js)
+(MIT): a tinted, blurred backdrop with a refracting rim and a specular sheen.
+It is rebuilt in plain CSS rather than WebGL so the sheets stay scrollable,
+selectable and fast, and it falls back to opaque panels where
+`backdrop-filter` is unavailable. Every menu is rounded — including the
+move-to-another-day menu, which is a glass popover rather than the operating
+system's square list.
 
 ## Artwork
 
 The backdrop is the line-art Fukuoka illustration supplied for the project, kept whole
-and recoloured to glowing lines in `img/skyline-neon.webp`. `skyline-drawing.py` still
+and recoloured to glowing lines in `img/skyline-neon.webp` with the three neon
+colours above. `skyline-drawing.py` still
 draws the original, self-authored vector skyline; the stock licence for the supplied
 illustration rests with its owner.
