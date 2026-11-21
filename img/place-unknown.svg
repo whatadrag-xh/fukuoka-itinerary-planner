@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Placeholder for a place found through OpenStreetMap">
+  <rect width="200" height="200" fill="#FBF9F3"/>
+  <path d="M0 148q26-12 52-4t52 0 48-6 48 6v56H0Z" fill="none" stroke="#16140F" stroke-width="2" opacity=".28"/>
+  <path d="M0 166q30-10 60-3t58 1 52-6 30 4" fill="none" stroke="#16140F" stroke-width="2" opacity=".18"/>
+  <path d="M100 48c-15 0-27 12-27 27 0 20 27 47 27 47s27-27 27-47c0-15-12-27-27-27Z" fill="none" stroke="#16140F" stroke-width="4.5" stroke-linejoin="round"/>
+  <circle cx="100" cy="75" r="8.5" fill="none" stroke="#6495ED" stroke-width="4.5"/>
+  <circle cx="100" cy="75" r="2.2" fill="#16140F"/>
+</svg>

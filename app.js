@@ -15,6 +15,7 @@ const mins = m => Math.round(m) + ' min';
 const yen  = n => '¥' + Math.round(n).toLocaleString('en-US');
 const esc  = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const catLabel = c => c.charAt(0).toUpperCase() + c.slice(1);
+const photoOf = p => p.photo || ('img/' + p.id + '.jpg');
 
 /* ============================================================
    STATE
@@ -35,6 +36,209 @@ const state = {
 
 const hotel = () => HOTELS.find(h => h.id === state.hotelId) || HOTELS[0];
 const isTrip = p => TRIP_REGIONS.includes(p.area);
+
+/* ============================================================
+   LIVE PLACE SEARCH — OpenStreetMap, free and keyless
+   ------------------------------------------------------------
+   No hand-written list can hold every hotel, mall, shop and
+   restaurant in the city, so both search boxes also ask Photon
+   (photon.komoot.io), a free OpenStreetMap search service.
+   No key, no account, results cached, failures degrade quietly.
+   ============================================================ */
+const PHOTON = 'https://photon.komoot.io/api/';
+const PHOTON_BBOX = '130.05,33.02,131.20,34.08';   /* Fukuoka and reachable day trips */
+const OSM_HOTEL_TYPES = ['tourism:hotel','tourism:guest_house','tourism:hostel','tourism:apartment','tourism:motel'];
+const OSM_CACHE = new Map();
+const live = {
+  hotel: {q:'', status:'idle', items:[], seq:0, timer:0},
+  place: {q:'', status:'idle', items:[], seq:0, timer:0}
+};
+const AREA_ANCHORS = [
+  ['hakata', 33.5900, 130.4207], ['tenjin', 33.5892, 130.3994],
+  ['nakasu', 33.5906, 130.4033], ['ohori', 33.5860, 130.3850],
+  ['momochi', 33.5920, 130.3581]
+];
+const OSM_KIND = {
+  hotel:'Hotel', guest_house:'Guesthouse', hostel:'Hostel', apartment:'Apartment hotel', motel:'Motel',
+  attraction:'Attraction', museum:'Museum', viewpoint:'Viewpoint', artwork:'Public art', theme_park:'Theme park',
+  restaurant:'Restaurant', cafe:'Café', bar:'Bar', pub:'Pub', fast_food:'Fast food', food_court:'Food court',
+  marketplace:'Market', mall:'Shopping mall', department_store:'Department store', supermarket:'Supermarket',
+  convenience:'Convenience store', bakery:'Bakery', temple:'Temple', shrine:'Shrine', park:'Park',
+  place_of_worship:'Place of worship', theatre:'Theatre', cinema:'Cinema', gallery:'Gallery',
+  hotel_building:'Hotel', commercial:'Commercial building', retail:'Retail building'
+};
+const OSM_CAT = {
+  'tourism:hotel':'stay','tourism:guest_house':'stay','tourism:hostel':'stay','tourism:apartment':'stay','tourism:motel':'stay',
+  'tourism:attraction':'view','tourism:museum':'art','tourism:viewpoint':'view','tourism:artwork':'view','tourism:theme_park':'view',
+  'amenity:restaurant':'food','amenity:cafe':'food','amenity:bar':'food','amenity:pub':'food','amenity:fast_food':'food',
+  'amenity:food_court':'food','amenity:marketplace':'market','shop:bakery':'food','shop:butcher':'food',
+  'shop:mall':'shopping','shop:department_store':'shopping','shop:supermarket':'shopping','shop:convenience':'shopping',
+  'building:temple':'temple','amenity:place_of_worship':'temple','leisure:park':'nature'
+};
+
+function nearestArea(lat, lon){
+  let best = 'hakata', bestD = Infinity;
+  AREA_ANCHORS.forEach(([key, la, lo]) => {
+    const d = haversine({lat, lon}, {lat:la, lon:lo});
+    if(d < bestD){ bestD = d; best = key; }
+  });
+  return best;
+}
+
+function osmResult(f){
+  const p = f.properties || {}, c = (f.geometry && f.geometry.coordinates) || [];
+  if(!p.name || !p.osm_key || c.length < 2) return null;
+  const lat = Number(c[1]), lon = Number(c[0]);
+  if(!isFinite(lat) || !isFinite(lon)) return null;
+  const addr = [p.housenumber && p.street ? p.housenumber + ' ' + p.street : p.street, p.district || p.city]
+    .filter(Boolean).join(', ');
+  return {
+    key: (p.osm_type || 'N') + p.osm_id,
+    name: p.name,
+    jp: /[\u3040-\u30ff\u4e00-\u9faf]/.test(p.name) ? p.name : '',
+    lat, lon,
+    osmKey: p.osm_key, osmValue: p.osm_value || '',
+    kind: OSM_KIND[p.osm_value] || OSM_KIND[p.osm_key] || catLabel(p.osm_value || p.osm_key || 'place'),
+    addr, city: p.city || '',
+    area: nearestArea(lat, lon),
+    dist: haversine({lat, lon}, hotel()),
+    url: 'https://www.openstreetmap.org/' +
+      ({N:'node', W:'way', R:'relation'}[p.osm_type] || 'node') + '/' + p.osm_id
+  };
+}
+
+function liveSearch(kind, raw){
+  const box = live[kind];
+  const q = (raw || '').trim();
+  box.q = q; box.seq += 1;
+  if(q.length < 2){ box.status = 'idle'; box.items = []; paintLive(kind); return; }
+  const cacheKey = kind + '|' + q.toLowerCase();
+  if(OSM_CACHE.has(cacheKey)){ box.status = 'done'; box.items = OSM_CACHE.get(cacheKey); paintLive(kind); return; }
+  box.status = 'loading'; box.items = []; paintLive(kind);
+  const seq = box.seq;
+  const url = new URL(PHOTON);
+  url.searchParams.set('q', q);
+  url.searchParams.set('limit', '15');
+  url.searchParams.set('lang', 'en');
+  url.searchParams.set('lat', String(hotel().lat));
+  url.searchParams.set('lon', String(hotel().lon));
+  url.searchParams.set('bbox', PHOTON_BBOX);
+  if(kind === 'hotel') OSM_HOTEL_TYPES.forEach(t => url.searchParams.append('osm_tag', t));
+  fetch(url.toString(), {headers:{Accept:'application/json'}})
+    .then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(data => {
+      const items = (data.features || []).map(osmResult).filter(Boolean)
+        .filter(x => kind !== 'hotel' || x.osmKey === 'tourism')
+        .slice(0, 8);
+      OSM_CACHE.set(cacheKey, items);
+      if(seq !== box.seq) return;
+      box.items = items;
+      box.status = items.length ? 'done' : 'empty';
+      paintLive(kind);
+    })
+    .catch(() => {
+      if(seq !== box.seq) return;
+      box.status = 'error';
+      paintLive(kind);
+    });
+}
+
+function liveAsk(kind, q){
+  const box = live[kind];
+  clearTimeout(box.timer);
+  const t = (q || '').trim();
+  if(t.length < 2){ box.status = 'idle'; box.items = []; box.q = ''; }
+  else if(box.q !== t){ box.status = 'loading'; box.items = []; box.q = t; }
+  paintLive(kind);
+  box.timer = setTimeout(() => liveSearch(kind, q), 420);
+}
+
+function paintLive(kind){
+  if(kind === 'hotel') renderControls();
+  else renderPanel();
+}
+
+const mapsSearch = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+
+function liveHotelHtml(){
+  const q = state.hotelQuery.trim();
+  if(q.length < 2) return '';
+  const box = live.hotel;
+  let body = '';
+  if(box.status === 'loading') body = '<p class="osmnote">Looking through OpenStreetMap…</p>';
+  else if(box.status === 'error') body = '<p class="osmnote">Live search is not answering just now. <a href="' +
+    mapsSearch(q + ' hotel Fukuoka') + '" target="_blank" rel="noopener">Search Google Maps instead</a>.</p>';
+  else if(box.status === 'empty') body = '<p class="osmnote">No hotel of that name in Fukuoka on OpenStreetMap. Try the Japanese name, or <a href="' +
+    mapsSearch(q + ' hotel Fukuoka') + '" target="_blank" rel="noopener">search Google Maps</a>.</p>';
+  else if(box.status === 'done') body = box.items.map((it, i) =>
+    '<button class="hotel osm" data-osmhotel="' + i + '">' +
+      '<span class="hname">' + esc(it.name) + '</span>' +
+      (it.jp ? '<span class="hjp">' + esc(it.jp) + '</span>' : '') +
+      '<span class="hmeta">' + esc(it.kind) + (it.addr ? ' · ' + esc(it.addr) : it.city ? ' · ' + esc(it.city) : '') + '</span>' +
+      '<span class="hmeta osmgo">' + it.dist.toFixed(1) + ' km away · use as your base →</span>' +
+    '</button>').join('');
+  if(!body) return '';
+  return '<div class="osmblock"><div class="osmhead"><b>Any hotel in Fukuoka</b><span>OpenStreetMap</span></div>' + body + '</div>';
+}
+
+function useOSMHotel(it){
+  const id = 'osm-' + it.key;
+  if(!HOTELS.some(h => h.id === id)){
+    HOTELS.push({id, name:it.name, jp:it.jp || 'OpenStreetMap listing',
+      area:it.area, hub:(it.area === 'hakata' ? 'hakata' : 'tenjin'),
+      lat:it.lat, lon:it.lon, price:null,
+      walk:(it.addr ? it.addr + ' · ' : '') + 'found via OpenStreetMap',
+      osm:true, osmUrl:it.url});
+  }
+  state.hotelId = id;
+  state.hotelQuery = ''; state.hotelArea = 'all';
+  const inp = $('#hotelSearch'); if(inp) inp.value = '';
+  live.hotel.status = 'idle'; live.hotel.items = []; live.hotel.q = '';
+  live.hotel.seq += 1;
+  generate(); MAPSCOPE = 'auto'; render();
+}
+
+function livePlaceHtml(from){
+  const q = state.panelQuery.trim();
+  if(q.length < 2) return '';
+  const box = live.place;
+  let body = '';
+  if(box.status === 'loading') body = '<p class="osmnote">Looking through OpenStreetMap…</p>';
+  else if(box.status === 'error') body = '<p class="osmnote">Live search is not answering just now. <a href="' +
+    mapsSearch(q + ' Fukuoka') + '" target="_blank" rel="noopener">Search Google Maps instead</a>.</p>';
+  else if(box.status === 'empty') body = '<p class="osmnote">Nothing by that name near Fukuoka on OpenStreetMap. Try another spelling, or <a href="' +
+    mapsSearch(q + ' Fukuoka') + '" target="_blank" rel="noopener">search Google Maps</a>.</p>';
+  else if(box.status === 'done') body = box.items.map((it, i) => {
+    const leg = travel(from, {lat:it.lat, lon:it.lon, area:it.area}, hotel().hub);
+    return '<div class="opt osmopt">' +
+      '<img src="img/place-unknown.svg" alt="" loading="lazy">' +
+      '<div><h4>' + esc(it.name) + (it.jp ? '<span class="jp">' + esc(it.jp) + '</span>' : '') +
+        '<span class="osmflag">OSM</span></h4>' +
+        '<div class="bl">' + esc(it.kind) + (it.addr ? ' · ' + esc(it.addr) : '') + '</div>' +
+        '<div class="legline">' + (leg.dist ? leg.dist.toFixed(1) + ' km · ' : '') +
+          '<b>' + esc(leg.mode) + '</b> · ' + mins(leg.min) + ' · ' +
+          (leg.fare ? yen(leg.fare) + ' est.' : 'free') + '</div>' +
+      '</div>' +
+      '<button class="addto" data-addosm="' + i + '">+ Add</button></div>';
+  }).join('');
+  if(!body) return '';
+  return '<div class="osmblock osmplaces"><div class="osmhead"><b>Anywhere in Fukuoka</b><span>OpenStreetMap</span></div>' + body + '</div>';
+}
+
+function osmToPOI(it){
+  const id = 'osm-' + it.key;
+  if(POI[id]) return id;
+  const cat = OSM_CAT[it.osmKey + ':' + it.osmValue] ||
+    (it.osmKey === 'shop' ? 'shopping' : it.osmKey === 'amenity' ? 'food' : 'view');
+  POI[id] = {
+    id, name:it.name, jp:it.jp, area:it.area, cats:[cat],
+    lat:it.lat, lon:it.lon, dwell:60, fee:0,
+    blurb: it.kind + (it.addr ? ' at ' + it.addr : '') + '. Found through the live OpenStreetMap search.',
+    tip: 'Opening hours and prices are not listed for this one — check before you go.',
+    photo: 'img/place-unknown.svg', osm: true, osmUrl: it.url
+  };
+  return id;
+}
 
 /* ============================================================
    PLAN GENERATION
@@ -157,7 +361,7 @@ function renderControls(){
   const h = hotel();
   $('#hotelNow').innerHTML = '<b>' + esc(h.name) + '</b><span class="jp">' + esc(h.jp) + '</span>' +
     '<span class="hotelmeta">' + esc(AREA_LABEL[h.area] || h.area) + ' · ' + esc(h.walk) + '</span>' +
-    '<span class="hotelprice">about ' + yen(h.price) + ' a night</span>';
+    '<span class="hotelprice">' + (h.price ? 'about ' + yen(h.price) + ' a night' : 'live listing · rate not listed') + '</span>';
 
   const areas = [['all','All areas'],['hakata','Hakata'],['tenjin','Tenjin'],['nakasu','Nakasu'],['momochi','Momochi']];
   $('#hotelAreas').innerHTML = areas.map(([k,l]) =>
@@ -167,13 +371,14 @@ function renderControls(){
   const list = HOTELS.filter(x => (state.hotelArea === 'all' || x.area === state.hotelArea) &&
     (!q || (x.name + ' ' + x.jp + ' ' + x.area + ' ' + x.walk).toLowerCase().includes(q)));
 
-  $('#hotelList').innerHTML = list.length ? list.map(x =>
+  $('#hotelList').innerHTML = (list.length ? list.map(x =>
     '<button class="hotel' + (x.id === state.hotelId ? ' on' : '') + '" data-hotel="' + x.id + '" aria-pressed="' + (x.id === state.hotelId) + '">' +
       '<span class="hname">' + esc(x.name) + '</span>' +
       '<span class="hjp">' + esc(x.jp) + '</span>' +
-      '<span class="hmeta">' + esc(AREA_LABEL[x.area] || x.area) + ' · ' + yen(x.price) + '/night</span>' +
+      '<span class="hmeta">' + esc(AREA_LABEL[x.area] || x.area) + ' · ' + (x.price ? yen(x.price) + '/night' : 'rate not listed') + '</span>' +
     '</button>').join('')
-    : '<p class="hint">No hotel matches that search. Try “Hakata”, “Tenjin” or a hotel name.</p>';
+    : '<p class="hint">No hotel matches our shortlist. The live search below covers every hotel in the city.</p>') +
+    liveHotelHtml();
 
   $('#interestChips').innerHTML = INTERESTS.map(i =>
     '<button class="chip" data-interest="' + i.key + '" aria-pressed="' + state.interests.has(i.key) + '">' +
@@ -287,7 +492,7 @@ function stopRow(r, dayIdx){
     '</div>' +
     '<div class="stopbody">' +
       '<button class="phbtn" data-detail="' + p.id + '" aria-label="Open details for ' + esc(p.name) + '">' +
-        '<img class="ph" src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" loading="lazy">' +
+        '<img class="ph" src="' + photoOf(p) + '" alt="' + esc(p.name) + '" loading="lazy">' +
         '<span class="phzoom">Expand</span></button>' +
       '<div class="stoptext">' +
         '<div class="stopname">' + esc(p.name) + '<span class="jp">' + esc(p.jp) + '</span>' +
@@ -401,7 +606,7 @@ function ensureMap(){
 function popupHtml(p, n){
   return '<div class="pj">' + n + '. ' + esc(p.name) + '</div>' +
     '<div class="jp">' + esc(p.jp) + '</div>' +
-    '<img src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" data-detail="' + p.id + '" role="button" tabindex="0">' +
+    '<img src="' + photoOf(p) + '" alt="' + esc(p.name) + '" data-detail="' + p.id + '" role="button" tabindex="0">' +
     '<div>' + esc(p.blurb) + '</div>' +
     '<div style="margin-top:5px;color:#6b6459">' + mins(p.dwell) + ' · ' + (p.fee ? yen(p.fee) + ' entry' : 'free entry') + '</div>';
 }
@@ -487,7 +692,8 @@ function renderBudget(){
       '<li><span class="k">Food, four meals a day <span class="jp">食費</span></span><span class="v">' + yen(food) + '</span></li>' +
       '<li><span class="k">Walking in the plan</span><span class="v">' + km.toFixed(1) + ' km</span></li>' +
       '<li><span class="k">Stops booked</span><span class="v">' + stops + '</span></li>' +
-      '<li class="soft"><span class="k">' + esc(h.name) + '</span><span class="v">' + yen(h.price) + ' × ' + nights + ' night' + (nights>1?'s':'') + '</span></li>' +
+      '<li class="soft"><span class="k">' + esc(h.name) + '</span><span class="v">' +
+        (h.price ? yen(h.price) + ' × ' + nights + ' night' + (nights>1?'s':'') : 'rate not listed') + '</span></li>' +
     '</ul>' +
     '<div class="verdict">' + baseVerdict() + '</div>';
 }
@@ -574,6 +780,7 @@ function renderSources(){
   $('#sourceCard').innerHTML =
     '<h4>Data sources and method</h4><ul>' + list + '</ul>' +
     '<p>Map tiles and place names: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, rendered with Leaflet. ' +
+    'Live place search: <a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> over OpenStreetMap data — free, keyless, and it covers every hotel, restaurant, shop and mall in the city, not just our shortlist. ' +
     'Photographs: Wikimedia Commons, freely licensed. Hotel prices are typical 2026 guide rates for a double, not live availability. ' +
     'Fares reflect the published tables as of November 2026, including the 1 April 2026 Nishitetsu revision. Journey times are modelled from distance and published timetables for planning, not ticketing.</p>';
 }
@@ -630,10 +837,10 @@ function renderDetail(type, id){
   const item = isEat ? EAT_BY[id] : POI[id];
   if(!item) return;
   const d = isEat ? item : (DETAIL[id] || {});
-  const img = 'img/' + (isEat ? item.img : item.id) + '.jpg';
+  const img = isEat ? 'img/' + item.img + '.jpg' : photoOf(item);
   const area = AREA_NAME[item.area] || item.area;
   const cats = isEat ? ['food'] : item.cats;
-  const gallery = galleryFor(item);
+  const gallery = item.osm ? [] : galleryFor(item);
 
   const chips = [
     '<span class="dchip">' + (isEat ? MEAL_LABEL[item.meal] : catLabel(cats[0])) + '</span>',
@@ -649,6 +856,11 @@ function renderDetail(type, id){
   const note = isEat
     ? '<div class="dnote"><b>Where.</b> ' + esc(item.where) + '</div>'
     : (item.tip ? '<div class="dnote"><b>Good to know.</b> ' + esc(item.tip) + '</div>' : '');
+  const liveNote = item.osm
+    ? '<div class="dnote"><b>Live listing.</b> Found through OpenStreetMap, so we have its name, type and position but not its opening hours. ' +
+      '<a href="' + item.osmUrl + '" target="_blank" rel="noopener">OpenStreetMap</a> · ' +
+      '<a href="' + mapsSearch(item.lat + ',' + item.lon) + '" target="_blank" rel="noopener">Google Maps</a></div>'
+    : '';
 
   $('#detailBody').innerHTML =
     '<div class="dhero">' +
@@ -662,14 +874,14 @@ function renderDetail(type, id){
       '<div class="dsection"><h4>What it is</h4><p>' + esc(d.w || item.blurb) + '</p></div>' +
       (d.s ? '<div class="dsection"><h4>What stands out</h4><p>' + esc(d.s) + '</p></div>' : '') +
       (todos ? '<div class="dsection"><h4>Popular things to do</h4><ol class="dtodo">' + todos + '</ol></div>' : '') +
-      note +
+      note + liveNote +
       (gallery.length ? '<div class="dsection"><h4>More around ' + esc(area) + '</h4>' +
         '<div class="dgallery">' + gallery.map(q =>
           '<button class="dgtile" data-detail="' + q.id + '">' +
             '<img src="img/' + q.id + '.jpg" alt="' + esc(q.name) + '" loading="lazy">' +
             '<span>' + esc(q.name) + '<em>' + esc(q.jp) + '</em></span></button>').join('') +
         '</div></div>' : '') +
-      '<p class="dsource">Photographs: Wikimedia Commons.</p>' +
+      '<p class="dsource">' + (item.osm ? 'Position and type: OpenStreetMap contributors.' : 'Photographs: Wikimedia Commons.') + '</p>' +
     '</div>';
 
   const scroll = $('#detailBody');
@@ -803,7 +1015,7 @@ function openTimePicker(btn){
    ADD-A-STOP SHEET
    ============================================================ */
 const PANEL_CATS = [['all','Everything'],['temple','Temples'],['food','Food'],['nature','Nature'],
-  ['view','Views'],['art','Museums'],['market','Markets'],['shopping','Shopping']];
+  ['view','Views'],['art','Museums'],['market','Markets'],['shopping','Shopping'],['stay','Hotels']];
 
 function recScore(leg, p){
   let s = 0;
@@ -846,11 +1058,11 @@ function renderPanel(){
     .sort((a,b) => b.score - a.score);
 
   const recCount = rows.length >= 8 ? 5 : rows.length >= 4 ? 3 : 1;
-  $('#sheetList').innerHTML = rows.length ? rows.map((o, idx) => {
+  $('#sheetList').innerHTML = (rows.length ? rows.map((o, idx) => {
     const p = o.p, leg = o.leg;
     const dist = leg.dist ? leg.dist.toFixed(1) + ' km · ' : '';
     return '<div class="opt">' +
-      '<img src="img/' + p.id + '.jpg" alt="' + esc(p.name) + '" loading="lazy" data-detail="' + p.id + '" role="button" tabindex="0">' +
+      '<img src="' + photoOf(p) + '" alt="' + esc(p.name) + '" loading="lazy" data-detail="' + p.id + '" role="button" tabindex="0">' +
       '<div><h4>' + esc(p.name) + '<span class="jp">' + esc(p.jp) + '</span>' +
         (idx < recCount ? '<span class="rec">Recommended</span>' : '') + '</h4>' +
         '<div class="bl">' + esc(p.blurb) + '</div>' +
@@ -859,7 +1071,8 @@ function renderPanel(){
           (p.fee ? yen(p.fee) + ' entry' : 'free entry') + ' · ' + mins(p.dwell) + ' there</div>' +
       '</div>' +
       '<button class="addto" data-add="' + p.id + '">+ Add</button></div>';
-  }).join('') : '<div class="sheet-empty">Nothing matches that. Try another category or day.</div>';
+  }).join('') : '<div class="sheet-empty">Nothing in our guide matches that — the live search below covers the rest of the city.</div>') +
+    livePlaceHtml(from);
 }
 
 function openPanel(dayIdx){
@@ -966,12 +1179,22 @@ $('#daysMinus').addEventListener('click', () => setDays(state.days - 1));
 $('#daysPlus').addEventListener('click', () => setDays(state.days + 1));
 $('#daysInput').addEventListener('change', e => setDays(Number(e.target.value)));
 
-$('#hotelSearch').addEventListener('input', e => { state.hotelQuery = e.target.value; renderControls(); });
+$('#hotelSearch').addEventListener('input', e => {
+  state.hotelQuery = e.target.value;
+  renderControls();
+  liveAsk('hotel', e.target.value);
+});
 $('#hotelAreas').addEventListener('click', e => {
   const b = e.target.closest('[data-harea]'); if(!b) return;
   state.hotelArea = b.dataset.harea; renderControls();
 });
 $('#hotelList').addEventListener('click', e => {
+  const osm = e.target.closest('[data-osmhotel]');
+  if(osm){
+    const it = live.hotel.items[Number(osm.dataset.osmhotel)];
+    if(it) useOSMHotel(it);
+    return;
+  }
   const b = e.target.closest('[data-hotel]'); if(!b) return;
   state.hotelId = b.dataset.hotel;
   generate();
@@ -1012,6 +1235,8 @@ $('#resetBtn').addEventListener('click', () => {
   state.interests = new Set(['temple','food']);
   state.trips = new Set(['dazaifu']);
   state.hotelQuery = ''; state.hotelArea = 'all';
+  live.hotel.status = 'idle'; live.hotel.items = []; live.hotel.q = '';
+  const hs = $('#hotelSearch'); if(hs) hs.value = '';
   generate(); MAPSCOPE = 'auto'; render();
 });
 
@@ -1153,10 +1378,19 @@ $('#addModal').addEventListener('click', e => {
   if(tab){ state.panelDay = Number(tab.dataset.pday); renderPanel(); return; }
   const cat = e.target.closest('[data-pcat]');
   if(cat){ state.panelCat = cat.dataset.pcat; renderPanel(); return; }
+  const addOSM = e.target.closest('[data-addosm]');
+  if(addOSM){
+    const it = live.place.items[Number(addOSM.dataset.addosm)];
+    if(it){ addStop(osmToPOI(it)); return; }
+  }
   const add = e.target.closest('[data-add]');
   if(add){ addStop(add.dataset.add); return; }
 });
-$('#sheetSearch').addEventListener('input', e => { state.panelQuery = e.target.value; renderPanel(); });
+$('#sheetSearch').addEventListener('input', e => {
+  state.panelQuery = e.target.value;
+  renderPanel();
+  liveAsk('place', e.target.value);
+});
 document.addEventListener('keydown', e => {
   if(e.key !== 'Escape') return;
   if(TPOP){ closeTimePicker(); return; }
