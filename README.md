@@ -61,9 +61,14 @@ on the page is the artwork behind the opening screen.
 
 That artwork is the supplied Fukuoka line drawing, recoloured with a vertical
 gradient through the three neon colours — deep violet `#1E0427`, pale
-`#EAF2FF` and cyan `#16E6FF` — with a bloom on every line. It sits behind the
-hero and dissolves into the paper page at its foot, so the planner below reads
-as flat paper cards.
+`#EAF2FF` and cyan `#16E6FF` — with a bloom on every line. It is fixed behind
+the whole page, not just the opening screen, under a light paper wash that
+keeps it a background rather than a foreground. Section headings ride on small
+paper labels so ink type stays crisp wherever the city glows through, and the
+planner itself is opaque paper cards.
+
+The hero photograph is mounted whole: it is never cropped, zoomed or scaled on
+hover, so the tower and the bay read exactly as taken.
 
 Every popup — the place detail sheet, the add-a-stop sheet, the time picker and
 the Day 1 / Day 2 menu — opens in the centre of the screen and is liquid glass

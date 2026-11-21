@@ -1611,13 +1611,3 @@ applyScale();
 generate();
 render();
 
-/* the neon skyline band runs from the top of the page to the foot of the hero */
-function sizeNight(){
-  const night = document.querySelector('.night');
-  const hero = document.querySelector('.hero');
-  if(!night || !hero) return;
-  night.style.height = Math.round(hero.getBoundingClientRect().bottom + window.scrollY) + 'px';
-}
-window.addEventListener('resize', sizeNight);
-if(document.fonts && document.fonts.ready) document.fonts.ready.then(sizeNight);
-sizeNight();
