@@ -399,7 +399,7 @@ function renderControls(){
 /* ============================================================
    RENDER — days
    ============================================================ */
-const DAYCOL = ['#c8792f','#4d7d99','#5f8a6b','#8a6a9e','#a8743a','#5c7f8f'];
+const DAYCOL = ['#0acde9','#e37cbf','#83ce6e','#dd97f7','#e2af27','#83bdf8'];
 
 function altsFor(p){
   const rows = [];
@@ -608,7 +608,7 @@ function popupHtml(p, n){
     '<div class="jp">' + esc(p.jp) + '</div>' +
     '<img src="' + photoOf(p) + '" alt="' + esc(p.name) + '" data-detail="' + p.id + '" role="button" tabindex="0">' +
     '<div>' + esc(p.blurb) + '</div>' +
-    '<div style="margin-top:5px;color:#6b6459">' + mins(p.dwell) + ' · ' + (p.fee ? yen(p.fee) + ' entry' : 'free entry') + '</div>';
+    '<div style="margin-top:5px;color:var(--ink-dim)">' + mins(p.dwell) + ' · ' + (p.fee ? yen(p.fee) + ' entry' : 'free entry') + '</div>';
 }
 
 function drawMap(){
@@ -661,7 +661,7 @@ function renderLegend(){
   $('#legend').innerHTML = state.plan.map((d, i) =>
     '<span><i style="background:' + DAYCOL[i % DAYCOL.length] + '"></i>Day ' + (i+1) +
     (d.kind === 'trip' ? ' · ' + esc(TRIP_LABELS[d.region]) : '') + '</span>').join('') +
-    '<span><i style="background:#f2ebdf"></i>Your hotel</span>' +
+    '<span><i style="background:#e37cbf"></i>Your hotel</span>' +
     '<span class="legendnote">Streets you will walk: ' + STREETS.map(s => s.jp + ' ' + s.en).join(' · ') + '</span>';
 }
 

@@ -10,11 +10,11 @@ retimed or stretched by hand.
 | File | What it is |
 | --- | --- |
 | `index.html` | Page markup only |
-| `styles.css` | All styling (paper white, ink black, cornflower accents; Cormorant + Jost) |
+| `styles.css` | All styling (neon glow palette, liquid-glass popups; Cormorant + Jost) |
 | `data.js` | Places, hotels, day-trip fares, fare tables, route ordering |
 | `app.js` | Planner engine, rendering, drag-and-drop, editing, live place search |
-| `img/` | 97 photographs from Wikimedia Commons, plus the drawn skyline and placeholder |
-| `skyline-drawing.py` | The script that draws the backdrop skyline as vectors |
+| `img/` | 97 photographs from Wikimedia Commons, plus the neon skyline backdrop and placeholder |
+| `skyline-drawing.py` | The script that draws the original vector skyline (kept for provenance) |
 
 No build step: open `index.html` with the folder next to it. Plain scripts, so `file://`
 works too.
@@ -46,8 +46,24 @@ Map tiles and place names: OpenStreetMap contributors, rendered with Leaflet. Li
 search: Photon (photon.komoot.io) over OpenStreetMap data, free and keyless.
 Photographs: Wikimedia Commons, freely licensed.
 
+## Look
+
+The interface follows the cyberpunk palette from
+[omarchy-neon-glow](https://github.com/erikrjohansson/omarchy-neon-glow-theme) (MIT):
+a deep tinted background (`#061214`), cyan accent (`#0acde9`) and pink secondary
+(`#e37cbf`). Headings, chips and buttons carry the glow; the map tiles are inverted so
+the map reads as a dark neon surface.
+
+Every popup — the place detail sheet, the add-a-stop sheet and the time picker — is
+liquid glass in the spirit of
+[liquid-glass-js](https://github.com/dashersw/liquid-glass-js) (MIT): a tinted, blurred
+backdrop with a refracting rim, a specular sheen and a soft neon halo. It is rebuilt in
+plain CSS rather than WebGL so the sheets stay scrollable, selectable and fast, and it
+falls back to opaque panels where `backdrop-filter` is unavailable.
+
 ## Artwork
 
-The skyline behind the page is drawn from scratch as an SVG by `skyline-drawing.py`:
-buildings, the tower, the expressway and the hills are plain rectangles and paths, so it
-carries no stock-image licence. It replaced an earlier stock illustration.
+The backdrop is the line-art Fukuoka illustration supplied for the project, kept whole
+and recoloured to glowing lines in `img/skyline-neon.webp`. `skyline-drawing.py` still
+draws the original, self-authored vector skyline; the stock licence for the supplied
+illustration rests with its owner.
