@@ -856,15 +856,14 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 
 /* hero: paper glass over the neon skyline */
 .hero{padding-bottom:76px}
-/* two paper cards over the drawing: the copy, and the photograph mounted beside it */
-/* one card: the paper on the left dissolves straight into the photograph on the right */
+/* one card, split cleanly: paper copy on the left, the photograph on the right */
 .hero-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.04fr .96fr;gap:0;
   background:#FCFAF5;border:1px solid rgba(20,22,26,.09);border-radius:26px;
   box-shadow:0 26px 64px rgba(23,22,18,.13);min-height:0;overflow:hidden;align-items:stretch}
 .hero-copy{background:none;border:0;border-radius:0;box-shadow:none}
 .hero-media{position:relative;min-height:0;overflow:hidden;padding:0;border:0;border-radius:0;box-shadow:none;background:#FCFAF5;margin-left:-1px}
-.hero-media::before{content:"";position:absolute;top:0;bottom:0;left:-6px;right:0;z-index:2;pointer-events:none;
-  background:linear-gradient(90deg,#FCFAF5 0%,#FCFAF5 14%,rgba(252,250,245,.86) 25%,rgba(252,250,245,.42) 36%,rgba(252,250,245,0) 52%)}
+/* a hairline where the paper ends and the photograph begins */
+.hero-media{box-shadow:inset 1px 0 0 rgba(20,22,26,.13)}
 .heroimg{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;border-radius:0;background:none;box-shadow:none;cursor:zoom-in;overflow:hidden}
 .hero-media img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;display:block}
 .heroimg:hover img{transform:none}
@@ -1060,11 +1059,10 @@ aside.panel{box-shadow:var(--shadow)}
   .tl .row{grid-template-columns:1fr}
 }
 
-/* the two hero cards stack on narrow screens */
+/* the header stacks on narrow screens */
 @media (max-width:1080px){
   .hero-inner{grid-template-columns:1fr;gap:0}
   .hero-copy{order:1;padding-bottom:8px}
-  .hero-media{order:2;padding:0;aspect-ratio:4/5;max-height:64vh;margin-top:-26px}
-  .hero-media::before{background:linear-gradient(180deg,#FCFAF5 0%,rgba(252,250,245,.92) 9%,rgba(252,250,245,0) 30%)}
+  .hero-media{order:2;padding:0;aspect-ratio:4/5;max-height:64vh;margin-top:0;box-shadow:inset 0 1px 0 rgba(20,22,26,.13)}
   .hero-tag{left:16px;right:auto;bottom:16px}
 }
