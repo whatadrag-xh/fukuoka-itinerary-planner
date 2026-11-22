@@ -1164,6 +1164,92 @@ function railStations(a, b){
   return names;
 }
 
+/* which railway each piece of track belongs to, with the operator's colour */
+function railLine(id){
+  return (typeof RAILLINES !== 'undefined' && id && RAILLINES[id]) || null;
+}
+
+/* split a journey into runs of one line: [{id, coords}, ...] */
+function railRuns(a, b){
+  if(!a || !b || typeof RAILCHAIN === 'undefined') return null;
+  const steps = RAILCHAIN[a + '|' + b];
+  if(!steps) return null;
+  const runs = [];
+  for(const step of steps){
+    const cut = step.indexOf('->');
+    const x = step.slice(0, cut), y = step.slice(cut + 2);
+    const ck = x < y ? x + '|' + y : y + '|' + x;
+    const piece = RAILSEG[ck];
+    if(!piece) return null;
+    const rev = x > y;
+    const pts = rev ? piece.slice().reverse() : piece.slice();
+    const rle = (typeof RAILRUN !== 'undefined' && RAILRUN[ck]) || null;
+    const ids = [];
+    if(rle){
+      rle.forEach(([id, n]) => { for(let k = 0; k < n; k++) ids.push(id); });
+    }
+    if(rev) ids.reverse();
+    const n = pts.length - 1;
+    let start = 0;
+    for(let k = 1; k <= n; k++){
+      const id = ids[start] !== undefined ? ids[start] : null;
+      if(k === n || (ids[k] !== undefined ? ids[k] : null) !== id){
+        if(k > start) runs.push({id, coords: pts.slice(start, k + 1)});
+        start = k;
+      }
+    }
+  }
+  const out = [];
+  runs.forEach(r => {
+    const coords = r.coords.slice();
+    const last = out[out.length - 1];
+    if(last && coords.length){
+      const p = last.coords[last.coords.length - 1], q = coords[0];
+      if(p[0] === q[0] && p[1] === q[1]) coords.shift();
+    }
+    if(!coords.length) return;
+    if(last && last.id === r.id) last.coords.push(...coords);
+    else out.push({id: r.id, coords});
+  });
+  return out.length ? out : null;
+}
+
+/* the lines a ride uses, in order, for the legend under the map */
+function railRunLines(a, b){
+  const runs = railRuns(a, b);
+  if(!runs) return [];
+  const out = [];
+  runs.forEach(r => {
+    const info = railLine(r.id);
+    // a few hundred metres at a station throat is a platform walk, not a line
+    if(!info || railMid(r.coords).km < 0.6) return;
+    if(!out.some(l => l.id === r.id)) out.push({id: r.id, name: info[0], colour: info[1]});
+  });
+  return out;
+}
+
+/* point halfway along a polyline, and its length in km */
+function railMid(coords){
+  let total = 0;
+  for(let i = 1; i < coords.length; i++){
+    total += haversine({lat:coords[i-1][0], lon:coords[i-1][1]}, {lat:coords[i][0], lon:coords[i][1]});
+  }
+  let walked = 0;
+  for(let i = 1; i < coords.length; i++){
+    const d = haversine({lat:coords[i-1][0], lon:coords[i-1][1]}, {lat:coords[i][0], lon:coords[i][1]});
+    if(walked + d >= total / 2 || i === coords.length - 1){
+      const t = d ? Math.max(0, Math.min(1, (total / 2 - walked) / d)) : 0;
+      return {
+        pt: [coords[i-1][0] + (coords[i][0] - coords[i-1][0]) * t,
+             coords[i-1][1] + (coords[i][1] - coords[i-1][1]) * t],
+        km: total
+      };
+    }
+    walked += d;
+  }
+  return {pt: coords[0], km: total};
+}
+
 const segMins = meters => Math.max(1, Math.round(meters / 78));
 
 function routeSheetHtml(leg, segs){
@@ -1189,17 +1275,26 @@ function routeSheetHtml(leg, segs){
       '</div></li>';
   }).join('');
   const rail = segs.some(sg => sg.kind === 'ride');
+  const legLines = [];
+  segs.filter(sg => sg.kind === 'ride').forEach(sg => {
+    railRunLines(sg.from.n, sg.to.n).forEach(l => {
+      if(!legLines.some(x => x.id === l.id)) legLines.push(l);
+    });
+  });
   return '<div class="rhead">' +
       '<p class="eyebrow">Getting there · 道順</p>' +
       '<h2 id="routeTitle">' + esc(leg.from.name) + ' <span class="rarrow">→</span> ' + esc(leg.to.name) + '</h2>' +
       '<div class="rchips">' + chips + '</div>' +
     '</div>' +
     '<div class="rmapwrap"><div id="routeMap" class="rmap"></div></div>' +
+    (legLines.length ? '<div class="rlegend">' + legLines.map(l =>
+      '<span class="rleg"><i style="background:' + l.colour + '"></i>' + esc(l.name) + '</span>'
+    ).join('') + '</div>' : '') +
     (segs.selfStation ? '<p class="rnote">Both ends are closest to ' + esc(segs.selfStation) + ', so there is no train to catch — this leg is on foot.</p>' : '') +
     '<ol class="rsteps">' + steps + '</ol>' +
-    (rail ? '<p class="rnote">The railway follows the real subway and JR tracks, with a dot at every station it passes. Check the platform screens on the day for the exact service.</p>' : '') +
+    (rail ? '<p class="rnote">Each railway is drawn in the colour its operator uses on the route map, with its name on the line and a dot at every station it passes. Check the platform screens on the day for the exact service.</p>' : '') +
     (segs.some(sg => sg.kind === 'onward') ? '<p class="rnote">The last stretch is a local bus or a taxi from the station; the grey line is the direction, not a street route.</p>' : '') +
-    '<p class="rnote" id="routeSource">Streets and railway tracks from OpenStreetMap.</p>';
+    '<p class="rnote" id="routeSource">Streets, railway tracks and line identities from OpenStreetMap; line colours from the operators\u2019 route maps.</p>';
 }
 
 function ensureRouteMap(){
@@ -1245,17 +1340,43 @@ async function drawRoute(leg, segs){
       coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
       L.polyline(coords, {color:'#8A8F98', weight:4, opacity:.6, dashArray:'10 8', lineCap:'round'}).addTo(layer);
     } else {
-      const track = railPath(sg.from.n, sg.to.n);
-      coords = track || [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
-      if(track){
-        L.polyline(coords, {color:'#FFFFFF', weight:9, opacity:.9, lineCap:'round', lineJoin:'round'}).addTo(layer);
-        L.polyline(coords, {color:'#2F7E8E', weight:4.5, opacity:.95, lineCap:'round', lineJoin:'round'}).addTo(layer);
+      const runs = railRuns(sg.from.n, sg.to.n);
+      coords = runs ? runs.reduce((acc, r) => acc.concat(r.coords), [])
+                    : [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
+      if(runs){
+        const tags = [];
+        runs.forEach(r => {
+          const info = railLine(r.id);
+          if(info){
+            L.polyline(r.coords, {color:'#FFFFFF', weight:9, opacity:.9, lineCap:'round', lineJoin:'round'}).addTo(layer);
+            L.polyline(r.coords, {color:info[1], weight:4.5, opacity:.95, lineCap:'round', lineJoin:'round'}).addTo(layer);
+            const mid = railMid(r.coords);
+            if(mid.km >= 1.1) tags.push({pt:mid.pt, km:mid.km, info});
+          } else {
+            L.polyline(r.coords, {color:'#8A8F98', weight:3, opacity:.75, dashArray:'6 7', lineCap:'round', lineJoin:'round'}).addTo(layer);
+          }
+        });
+        const nearLine = pt => {
+          let best = null;
+          runs.forEach(r => r.coords.forEach(c => {
+            if(!railLine(r.id)) return;
+            const d = haversine({lat:pt.lat, lon:pt.lon}, {lat:c[0], lon:c[1]});
+            if(!best || d < best.d) best = {d, id:r.id};
+          }));
+          return best && best.id;
+        };
         const via = railStations(sg.from.n, sg.to.n).slice(1, -1);
         via.forEach(nm => {
           const st = STATION_BY[nm];
           if(!st) return;
-          L.circleMarker([st.lat, st.lon], {radius:3.4, color:'#2F7E8E', weight:2, fillColor:'#FFFFFF', fillOpacity:1})
+          const info = railLine(nearLine(st));
+          L.circleMarker([st.lat, st.lon], {radius:3.6, color:info ? info[1] : '#3A3A3A', weight:2.2, fillColor:'#FFFFFF', fillOpacity:1})
             .addTo(layer).bindTooltip(esc(st.n) + (st.jp ? ' · ' + esc(st.jp) : ''), {direction:'top'});
+        });
+        tags.sort((x, y) => y.km - x.km).slice(0, 5).forEach(t => {
+          L.marker(t.pt, {interactive:false, icon:L.divIcon({className:'rline-ico',
+            html:'<span class="rline-tag" style="--line:' + t.info[1] + '"><i></i>' + esc(t.info[0]) + '</span>',
+            iconSize:[0, 0]})}).addTo(layer);
         });
       } else {
         L.polyline(coords, {color:'#8A8F98', weight:4, opacity:.65, dashArray:'10 8', lineCap:'round'}).addTo(layer);
