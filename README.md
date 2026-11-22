@@ -78,11 +78,3 @@ selectable and fast, and it falls back to opaque panels where
 `backdrop-filter` is unavailable. Every menu is rounded — including the
 move-to-another-day menu, which is a glass popover rather than the operating
 system's square list.
-
-## Artwork
-
-The backdrop is the line-art Fukuoka illustration supplied for the project, kept whole
-and recoloured to glowing lines in `img/skyline-neon.webp` with the three neon
-colours above. `skyline-drawing.py` still
-draws the original, self-authored vector skyline; the stock licence for the supplied
-illustration rests with its owner.
