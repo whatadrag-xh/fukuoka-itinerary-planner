@@ -882,8 +882,6 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 .hl,.eatcard{background:#fff;border-color:var(--line-soft);box-shadow:0 8px 22px rgba(20,22,26,.06)}
 .hl:hover,.eatcard:hover{border-color:var(--blue-line);box-shadow:var(--shadow)}
 .hl h3,.eatname,.opt h4{color:var(--ink)}
-.eatgroup h3{isolation:isolate}
-.eatgroup h3::before{content:"";position:absolute;left:-10px;right:-10px;top:-14px;bottom:-8px;z-index:-1;background:radial-gradient(closest-side,var(--paper) 62%,rgba(246,243,235,0) 100%)}
 .pill{background:var(--blue-soft);border-color:var(--blue-line);color:var(--blue-ink)}
 .eatbadge{background:rgba(255,255,255,.9);border:1px solid var(--line-soft);color:var(--blue-ink)}
 .opt .rec{background:var(--blue-deep);color:#fff}
@@ -1065,4 +1063,35 @@ aside.panel{box-shadow:var(--shadow)}
   .hero-copy{order:1;padding-bottom:8px}
   .hero-media{order:2;padding:0;aspect-ratio:4/5;max-height:64vh;margin-top:0;box-shadow:inset 0 1px 0 rgba(20,22,26,.13)}
   .hero-tag{left:16px;right:auto;bottom:16px}
+}
+
+
+/* ---------- where to eat: one shelf, scrolled sideways ---------- */
+.eatgrid{overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scroll-padding-left:26px;padding:10px 26px 24px;
+  scrollbar-width:thin;scrollbar-color:rgba(20,22,26,.2) transparent}
+.eatgrid::-webkit-scrollbar{height:8px}
+.eatgrid::-webkit-scrollbar-thumb{background:rgba(20,22,26,.18);border-radius:99px}
+.eatgrid::-webkit-scrollbar-track{background:transparent}
+.eatrail{display:flex;gap:16px;align-items:stretch;width:max-content}
+.eatset{display:flex;gap:16px;align-items:stretch}
+.eatlabel{flex:0 0 108px;display:flex;flex-direction:column;justify-content:flex-start;gap:3px;scroll-snap-align:start;
+  padding:14px 8px 0 2px;border-top:2px solid var(--blue)}
+.eatlabel span{font-family:"Yu Mincho",var(--serif);font-size:.72rem;letter-spacing:.18em;color:var(--blue-deep)}
+.eatlabel b{font-family:var(--serif);font-size:1.18rem;line-height:1.15;color:var(--ink);font-weight:600}
+.eatlabel em{font-style:normal;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
+.eatcard{flex:0 0 288px;scroll-snap-align:start;display:flex;flex-direction:column;
+  padding:10px 10px 12px;border-radius:18px;background:#fff;gap:0}
+.eatcard .eatpic{width:100%;aspect-ratio:4/3;border-radius:12px}
+.eatcard .eatbody{padding:12px 6px 2px;gap:6px}
+.eatcard .eatreco{-webkit-line-clamp:4;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.eatnav{display:flex;gap:8px;justify-content:center;margin-top:18px}
+.eatnav-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;
+  color:var(--ink-soft);font-size:1rem;line-height:1;cursor:pointer;transition:.18s;display:grid;place-items:center}
+.eatnav-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue-deep);background:var(--blue-wash)}
+.eatnav-btn:disabled{opacity:.32;cursor:default}
+@media (max-width:760px){
+  .eatgrid{padding:8px 14px 18px}
+  .eatcard{flex:0 0 244px;padding:8px 8px 10px}
+  .eatlabel{flex:0 0 76px}
+  .eatnav{margin-top:14px}
 }

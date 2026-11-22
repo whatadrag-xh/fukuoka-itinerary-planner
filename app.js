@@ -949,14 +949,34 @@ function renderSources(){
    ============================================================ */
 const MEAL_LABEL = {breakfast:'Breakfast', lunch:'Lunch', tea:'Tea', dinner:'Dinner'};
 
+function wireEatNav(){
+  const grid = $('#eatGrid');
+  if(!grid) return;
+  const by = d => grid.scrollBy({left: d * Math.round(grid.clientWidth * 0.8), behavior:'smooth'});
+  document.querySelectorAll('[data-eats]').forEach(b => {
+    b.onclick = () => by(Number(b.dataset.eats));
+  });
+  const l = document.querySelector('[data-eats="-1"]'), r = document.querySelector('[data-eats="1"]');
+  const sync = () => {
+    if(!l || !r) return;
+    const max = grid.scrollWidth - grid.clientWidth - 2;
+    l.disabled = grid.scrollLeft <= 2;
+    r.disabled = grid.scrollLeft >= max;
+  };
+  grid.addEventListener('scroll', sync, {passive:true});
+  window.addEventListener('resize', sync);
+  sync();
+}
+
 function renderEat(){
   const host = $('#eatGrid');
   if(!host) return;
   const order = ['breakfast','lunch','tea','dinner'];
-  host.innerHTML = '<div class="eatcol">' + order.map(k => {
+  const JP = {breakfast:'朝食', lunch:'昼食', tea:'喫茶', dinner:'夕食'};
+  host.innerHTML = '<div class="eatrail">' + order.map(k => {
     const list = EAT.filter(e => e.meal === k);
-    return '<div class="eatgroup"><h3>' + MEAL_LABEL[k] + '<span>' +
-      (k === 'breakfast' ? '朝食' : k === 'lunch' ? '昼食' : k === 'tea' ? '喫茶' : '夕食') + '</span></h3>' +
+    return '<div class="eatset">' +
+      '<div class="eatlabel"><span>' + JP[k] + '</span><b>' + MEAL_LABEL[k] + '</b><em>' + list.length + ' places</em></div>' +
       list.map(e =>
         '<button class="eatcard" data-detail="eat:' + e.id + '">' +
           '<span class="eatpic"><img src="img/' + e.img + '.jpg" alt="' + esc(e.name) + '" loading="lazy">' +
@@ -1350,6 +1370,7 @@ function render(){
   renderControls();
   renderDays();
   renderEat();
+  wireEatNav();
   drawMap();
   renderMapChips();
   renderLegend();

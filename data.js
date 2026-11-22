@@ -876,7 +876,93 @@ const EAT = [
    rec:'Fukuoka roasts its own coffee, and Daimyo’s side streets are full of small counters where a pour-over comes with a tiny sweet.',
    w:'A grid of back streets behind Tenjin, with third-wave roasters, old kissaten and record shops mixed together.',
    s:'The local habit is a “morning set”: coffee with toast or a boiled egg, served until 11:00 and rarely more than ¥700.',
-   t:['Order a morning set before 11:00.','Try a single-origin pour-over at a small roaster.','Walk the back streets towards Tenjin Central Park afterwards.']}
+   t:['Order a morning set before 11:00.','Try a single-origin pour-over at a small roaster.','Walk the back streets towards Tenjin Central Park afterwards.']},
+
+  /* --- added from the Fukuoka city and prefecture tourist boards --- */
+
+  {id:'mentaiju', meal:'breakfast', name:'Ganso Hakata Mentaiju', jp:'元祖博多めんたい重', area:'nakasu', img:'mentaiko',
+   where:'Nishinakasu 6-15 · 5 min from Tenjin or Nakasu-Kawabata', price:'¥2,000–3,000', open:'07:00–22:30',
+   rec:'A whole roll of kelp-cured mentaiko laid over rice, with the heat of the sauce chosen from four levels. Open at seven in the morning.',
+   w:'A bright, modern dining room on the Nishinakasu riverside, built around one dish: mentaiju, mentaiko set on white rice lined with nori.',
+   s:'It is the cleanest introduction to Fukuoka’s signature ingredient, and one of the few mentaiko specialists serving before 10 am — useful when a day trip leaves early.',
+   t:['Pick the medium heat if you want to taste the roe, not the chilli.','Add tororo or an onsen egg to stretch it into a bigger breakfast.','Buy a boxed set at the counter for the train.']},
+
+  {id:'daruma', meal:'lunch', name:'Hakata Daruma Honten', jp:'博多だるま 総本店', area:'tenjin', img:'ramen-hakata',
+   where:'Watanabe-dōri 1-8-25 · 6 min from Tenjin-minami', price:'¥900–1,200', open:'11:30–01:00',
+   rec:'The reference Hakata bowl since 1963: the broth has been simmered and topped up in the same iron pot for sixty years.',
+   w:'A proper city ramen shop with counter and tables, always a short queue, and a menu that barely needs reading.',
+   s:'The technique is called yobimodoshi — the pot is never emptied — and it gives a rounder, deeper tonkotsu than the pale Nagahama style: this is the richer end of the spectrum.',
+   t:['Order ramen and a side of chashu rice.','Ask for kata (firm) noodles on the first bowl.','Come after 14:00 to skip the lunch queue.']},
+
+  {id:'karo-udon', meal:'lunch', name:'Karo no Uron', jp:'かろのうろん', area:'hakata', img:'makino-udon',
+   where:'Kamikawabatamachi 2-1 · 5 min from Nakasu-Kawabata', price:'¥600–900', open:'11:00 until the noodles run out',
+   rec:'Hakata udon since 1882, in a wooden shop off the Kawabata arcade. Gobo-ten on top, clear Rausu-kombu dashi underneath.',
+   w:'An old wooden building with low tables and a queue on weekends, serving soft noodles and crisp burdock tempura.',
+   s:'It is the historic version of the bowl the chains copied — the dashi is cleaner and the noodles are boiled to order, which the chains do not manage at volume.',
+   t:['Order gobo-ten udon.','Go at 11:00 sharp — they close when the noodles are gone.','Add a rice ball to finish the dashi.']},
+
+  {id:'shoboan', meal:'lunch', name:'Hakata Shoboan', jp:'めんたい料理 博多 椒房庵', area:'hakata', img:'mentaiko',
+   where:'JR Hakata City 9F · inside the station', price:'¥2,000–3,000', open:'11:00–16:00, 17:00–22:00',
+   rec:'Mentaiko as a whole meal rather than a garnish: cod roe cured in flying-fish dashi, served with rice and small Hakata home dishes.',
+   w:'A calm dining room on the ninth floor of the station building, part restaurant and part shop for the company’s mentaiko.',
+   s:'Mentaiko is the souvenir everyone buys; eating it here shows what the good version tastes like before it is packed into a box.',
+   t:['Order the set that lets you compare fresh and grilled mentaiko.','Try the mentaiko tamagoyaki.','It is inside the station — good for a departure-day lunch.']},
+
+  {id:'yoshida', meal:'lunch', name:'Kappo Yoshida', jp:'割烹 吉田', area:'tenjin', img:'chazuke',
+   where:'Tenjin · a few minutes from Tenjin Station', price:'¥1,500–2,500', open:'Lunch only, from 11:30',
+   rec:'Tai chazuke: slices of raw sea bream on rice, green tea poured over at the table. The queue starts before it opens.',
+   w:'A small counter restaurant that has been in Tenjin since 1963, with a recipe handed down inside the family.',
+   s:'The dish is two ingredients and a technique — the fish is cut to order and the tea is hot enough to cook the surface as it hits the bowl.',
+   t:['Get there before 11:30.','Eat a few slices raw first, then pour the tea.','Cash, and no reservations at lunch.']},
+
+  {id:'uokura', meal:'lunch', name:'Hakata Uokura', jp:'博多 魚蔵', area:'hakata', img:'seafood-bowl',
+   where:'Miyako Hotel 2F, Hakataekihigashi 2-1-1 · 3 min from Hakata Station', price:'¥1,800–3,000', open:'11:00–15:00, 17:00–23:00',
+   rec:'Fish from the Genkai Sea and the Iki boats, at hotel-comfortable prices: sashimi, grilled nods, and a lunch set that is the value order.',
+   w:'A second-floor dining room inside the Miyako Hotel, with a counter for sashimi and tables for the set meals.',
+   s:'Fukuoka’s seafood is the reason to eat here rather than the ramen alone, and this is an easy, central place to try it without a reservation ritual.',
+   t:['Take the lunch set rather than à la carte.','Ask what came in from Iki that day.','Try the nodoguro if it is on.']},
+
+  {id:'tashu', meal:'dinner', name:'Motsunabe Tashu', jp:'もつ鍋 田しゅう 福岡大名本店', area:'tenjin', img:'motsunabe',
+   where:'Daimyo 1-3-6, Flaps Building 1F · 7 min from Akasaka', price:'¥3,000–4,000', open:'17:00–24:00',
+   rec:'A modern motsunabe room in Daimyo: beef offal, cabbage and garlic chives in a pot you finish with champon noodles.',
+   w:'A tidy, bright shop with private booths and staff who start the pot at your table and tell you when to eat it.',
+   s:'Oyama is the easy introduction; Tashu is where locals take it seriously — the offal is trimmed properly and the broth is not sweetened.',
+   t:['Order the miso base and add garlic chives.','Finish with champon noodles, not rice.','Book a booth — the counter is small.']},
+
+  {id:'toriden', meal:'dinner', name:'Tori Den Hakata', jp:'とり田 博多本店', area:'hakata', img:'mizutaki',
+   where:'Shimokawabatamachi 10-5 · 5 min from Gion', price:'¥4,000–6,000', open:'17:00–23:00',
+   rec:'Hakata mizutaki: chicken simmered six hours in nothing but water, then finished as a rice porridge in the same pot.',
+   w:'A modern restaurant near the Gion Yamakasa streets, where the staff cook the pot at your table and pace the courses.',
+   s:'Mizutaki is the dish locals are proudest of and visitors most often miss, because it is a slow, set-menu dinner rather than a bowl at a counter.',
+   t:['Drink the broth before anything is added.','Keep room for the porridge at the end.','Reserve the evening before.']},
+
+  {id:'tetsunabe', meal:'dinner', name:'Hakata Gion Tetsunabe', jp:'博多祇園鉄なべ', area:'hakata', img:'gyoza',
+   where:'Gionmachi 2-20 · 3 min from Gion Station', price:'¥1,500–2,500', open:'17:00–22:30, closed Sundays',
+   rec:'Bite-sized gyoza brought to the table in a cast-iron pan, still spitting, with a ponzu you mix yourself.',
+   w:'A narrow, old shop with benches and a queue, serving one thing: small pork gyoza in iron pans, ten to an order.',
+   s:'Hakata gyoza are small and light so you can eat them with beer; the iron pan keeps the bases crisp to the last one, which the plates elsewhere do not.',
+   t:['Order two pans for two people, then more.','Mix ponzu with the chilli paste at the table.','They close on Sundays.']},
+
+  {id:'kawataro', meal:'dinner', name:'Kawataro Nakasu', jp:'河太郎 中洲本店', area:'nakasu', img:'squid-sashimi',
+   where:'Nakasu · riverside, 5 min from Nakasu-Kawabata', price:'¥4,000–8,000', open:'17:00–22:00',
+   rec:'Live squid sashimi — ikezukuri — pulled from the tank and cut in front of you. The tentacles arrive later, still moving.',
+   w:'A sixty-year-old seafood restaurant on the Nakasu riverfront with tanks along the wall and a menu built on what swims in them.',
+   s:'Yobuko, just up the coast, is where ikezukuri was invented, and Kawataro is the city’s long-standing specialist — the flesh is translucent and sweet rather than chewy.',
+   t:['Order the squid for the table, not per person.','Have the tentacles grilled when the plate comes back.','Book ahead at weekends.']},
+
+  {id:'heisuke', meal:'dinner', name:'Sumibiyakitori Heisuke', jp:'中洲居酒屋 炭火焼鳥 平助', area:'nakasu', img:'yakitori',
+   where:'Nakasu · a few minutes from Nakasu-Kawabata', price:'¥3,000–4,000', open:'18:00–01:00',
+   rec:'Skewers from ¥150, grilled over binchō charcoal — the oak charcoal that perfumes the meat as much as it cooks it.',
+   w:'A small izakaya counter in Nakasu with a six-skewer set for around ¥1,000 and shrimp-and-shiso rolls off the grill.',
+   s:'It is the cheap, cheerful end of Fukuoka yakitori: no queue, no ceremony, and a set you can order without reading Japanese.',
+   t:['Start with the six-skewer set.','Try the shrimp and shiso roll.','Ask for the charcoal-grilled chicken skin.']},
+
+  {id:'tenjin-yatai', meal:'dinner', name:'Tenjin Yatai Street', jp:'天神屋台街', area:'tenjin', img:'nakasu',
+   where:'Around Tenjin Station, the Watanabe-dōri and Showa-dōri corners', price:'¥1,500–2,500', open:'18:30–01:00',
+   rec:'The other yatai district: denser around the station than Nakasu, and the place to order grilled ramen — noodles tossed in tonkotsu and sauce, then fried on the griddle.',
+   w:'A ring of stalls around Tenjin station and the side streets behind it, some with eight seats and one cook.',
+   s:'Grilled ramen was born at Kogane-chan in Nakasu and is now a Tenjin staple; it is the one yatai dish you will not find anywhere else in Japan.',
+   t:['Order yaki-ramen at one stall and a beer at the next.','Carry cash and small notes.','Check the weather — stalls stay shut in rain.']}
 ];
 const EAT_BY = Object.fromEntries(EAT.map(e=>[e.id,e]));
 
