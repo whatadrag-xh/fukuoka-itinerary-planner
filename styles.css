@@ -37,10 +37,10 @@ body{
 }
 .night::before{
   content:"";position:absolute;inset:0;opacity:.82;
-  background:url("img/skyline-neon.webp") center bottom / contain no-repeat;
+  background:url("img/skyline-neon.webp") center bottom / cover no-repeat;
 }
 @media (max-width:760px){
-  .night::before{background-size:168% auto;background-position:center bottom}
+  .night::before{background-size:cover;background-position:52% bottom}
 }
 body.locked{overflow:hidden}
 header,main,footer,.hero,.highlights,.eat,.sechead{position:relative;z-index:1}
@@ -858,15 +858,17 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 .hero{padding-bottom:76px}
 /* two paper cards over the drawing: the copy, and the photograph mounted beside it */
 .hero-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.06fr .94fr;gap:20px;
-  background:none;border:0;box-shadow:none;min-height:0;overflow:visible;align-items:start}
+  background:none;border:0;box-shadow:none;min-height:0;overflow:visible;align-items:stretch}
 .hero-copy{background:#FCFAF5;border:1px solid rgba(20,22,26,.09);border-radius:26px;box-shadow:0 24px 60px rgba(23,22,18,.1)}
-.hero-media{min-height:0;border:1px solid rgba(20,22,26,.09);border-radius:26px;box-shadow:0 18px 44px rgba(23,22,18,.09)}
-.hero-media{background:linear-gradient(180deg,#F2EFE6,#E9E4D7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px}
-.heroimg{height:auto;display:block;border-radius:10px;overflow:hidden;box-shadow:0 10px 26px rgba(23,22,18,.18);border:1px solid rgba(255,255,255,.75)}
-.hero-media img{height:auto;max-height:100%;object-fit:contain;image-rendering:auto}
+/* the photograph fills its card, edge to edge, the whole height of the copy beside it */
+.hero-media{position:relative;min-height:0;overflow:hidden;padding:0;
+  border:1px solid rgba(20,22,26,.09);border-radius:26px;box-shadow:0 18px 44px rgba(23,22,18,.09);background:var(--paper2)}
+.heroimg{position:absolute;inset:0;display:block;width:100%;height:100%;padding:0;border:0;border-radius:0;background:none;box-shadow:none;cursor:zoom-in;overflow:hidden}
+.hero-media img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;display:block}
 .heroimg:hover img{transform:none}
+.heroimg-static{cursor:default}
 .hero-media::after{display:none}
-.hero-tag{position:static;align-self:flex-start;margin:0 0 0 2px;background:rgba(255,255,255,.82);border-color:rgba(255,255,255,.7);box-shadow:0 10px 26px rgba(20,22,26,.16)}
+.hero-tag{position:absolute;left:16px;bottom:16px;margin:0;background:rgba(255,255,255,.93);border-color:rgba(255,255,255,.8);box-shadow:0 10px 26px rgba(20,22,26,.18)}
 .hero-tag span{color:var(--blue-ink)}
 .hero-tag b{color:var(--ink)}
 .hero-lede{color:var(--ink-soft)}
@@ -1059,5 +1061,5 @@ aside.panel{box-shadow:var(--shadow)}
 /* the two hero cards stack on narrow screens */
 @media (max-width:1080px){
   .hero-inner{grid-template-columns:1fr;gap:16px}
-  .hero-media{order:-1;padding:16px}
+  .hero-media{order:-1;padding:0;aspect-ratio:4/5;max-height:74vh}
 }
