@@ -31,24 +31,16 @@ body{
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
 }
-/* the neon skyline: the one glowing thing on the page, behind everything */
+/* the skyline: neon lines drawn on paper, fixed behind the whole page */
 .night{
-  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:var(--glow-deep);
+  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:var(--paper);
 }
 .night::before{
-  content:"";position:absolute;inset:0;
-  background:url("img/skyline-neon.webp") center bottom / cover no-repeat;
+  content:"";position:absolute;inset:0;opacity:.82;
+  background:url("img/skyline-neon.webp") center bottom / contain no-repeat;
 }
-.night::after{
-  content:"";position:absolute;inset:0;
-  background:
-    radial-gradient(72% 40% at 50% 98%, rgba(22,230,255,.2), transparent 76%),
-    radial-gradient(58% 30% at 50% 2%, rgba(30,4,39,.3), transparent 70%),
-    linear-gradient(180deg,
-      rgba(246,243,235,.36) 0%,
-      rgba(246,243,235,.44) 34%,
-      rgba(246,243,235,.52) 66%,
-      rgba(246,243,235,.46) 100%);
+@media (max-width:760px){
+  .night::before{background-size:168% auto;background-position:center bottom}
 }
 body.locked{overflow:hidden}
 header,main,footer,.hero,.highlights,.eat,.sechead{position:relative;z-index:1}
@@ -76,7 +68,11 @@ a:hover{color:var(--blue-deep);text-decoration:underline;text-underline-offset:3
   font-size:.72rem;letter-spacing:.34em;text-transform:uppercase;color:var(--blue-deep);
   font-weight:600;margin-bottom:14px;
 }
-.sechead{max-width:1600px;margin:0 auto;padding:66px 26px 26px;text-align:center}
+.sechead{max-width:1600px;margin:0 auto;padding:66px 26px 26px;text-align:center;isolation:isolate}
+/* a pool of plain paper under the words, so the drawing never fights the type */
+.sechead::before{content:"";position:absolute;left:50%;top:calc(50% + 8px);transform:translate(-50%,-50%);
+  width:min(820px,92vw);height:calc(100% + 30px);z-index:-1;
+  background:radial-gradient(closest-side,var(--paper) 56%,rgba(246,243,235,.72) 76%,rgba(246,243,235,0) 100%)}
 .sechead .eyebrow{margin-bottom:12px}
 .sechead h2{
   font-family:var(--serif);font-weight:500;font-size:clamp(2.1rem,4.2vw,3rem);
@@ -599,9 +595,7 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 
 /* ---------- end bar ---------- */
 .endbar{
-  max-width:min(980px,calc(100vw - 40px));margin:8px auto 48px;padding:28px 26px 30px;
-  background:rgba(251,249,244,.76);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.7);border-radius:24px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  max-width:1600px;margin:0 auto;padding:34px 26px 48px;display:flex;flex-direction:column;align-items:center;gap:8px;
   border-top:1px solid var(--line-soft);text-align:center;
 }
 .endbar p{font-family:var(--serif);font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft)}
@@ -839,13 +833,6 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 ::-webkit-scrollbar-thumb{background:rgba(20,22,26,.18);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
 ::-webkit-scrollbar-thumb:hover{background:rgba(20,22,26,.3);background-clip:padding-box}
 
-/* type — section headings ride on a paper label over the neon city */
-.sechead{
-  max-width:min(780px,calc(100vw - 40px));margin:34px auto 18px;padding:30px 38px 26px;
-  background:rgba(251,249,244,.8);backdrop-filter:blur(18px) saturate(1.1);-webkit-backdrop-filter:blur(18px) saturate(1.1);
-  border:1px solid rgba(255,255,255,.78);border-radius:26px;box-shadow:0 22px 54px rgba(20,6,28,.16);
-}
-.sechead .seclede{margin-left:auto;margin-right:auto}
 .sechead h2{color:var(--ink)}
 .eyebrow{color:var(--blue-deep)}
 .sechead h2::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
@@ -869,9 +856,11 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 
 /* hero: paper glass over the neon skyline */
 .hero{padding-bottom:76px}
-.hero-inner{max-width:1180px;margin:0 auto;min-height:470px;background:rgba(250,248,243,.9);border:1px solid rgba(255,255,255,.7);
-  backdrop-filter:blur(16px) saturate(1.05);-webkit-backdrop-filter:blur(16px) saturate(1.05);
-  box-shadow:0 30px 70px rgba(20,6,28,.32)}
+/* two paper cards over the drawing: the copy, and the photograph mounted beside it */
+.hero-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.06fr .94fr;gap:20px;
+  background:none;border:0;box-shadow:none;min-height:0;overflow:visible;align-items:start}
+.hero-copy{background:#FCFAF5;border:1px solid rgba(20,22,26,.09);border-radius:26px;box-shadow:0 24px 60px rgba(23,22,18,.1)}
+.hero-media{min-height:0;border:1px solid rgba(20,22,26,.09);border-radius:26px;box-shadow:0 18px 44px rgba(23,22,18,.09)}
 .hero-media{background:linear-gradient(180deg,#F2EFE6,#E9E4D7);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px}
 .heroimg{height:auto;display:block;border-radius:10px;overflow:hidden;box-shadow:0 10px 26px rgba(23,22,18,.18);border:1px solid rgba(255,255,255,.75)}
 .hero-media img{height:auto;max-height:100%;object-fit:contain;image-rendering:auto}
@@ -887,9 +876,11 @@ div.althumb{display:grid;place-items:center;font-family:"Yu Mincho",var(--serif)
 .hero-meta b{color:var(--ink)}
 
 /* highlight and eating cards */
-.hl,.eatcard{background:rgba(255,255,255,.95);border-color:var(--line-soft);box-shadow:0 8px 22px rgba(20,22,26,.06)}
+.hl,.eatcard{background:#fff;border-color:var(--line-soft);box-shadow:0 8px 22px rgba(20,22,26,.06)}
 .hl:hover,.eatcard:hover{border-color:var(--blue-line);box-shadow:var(--shadow)}
 .hl h3,.eatname,.opt h4{color:var(--ink)}
+.eatgroup h3{isolation:isolate}
+.eatgroup h3::before{content:"";position:absolute;left:-10px;right:-10px;top:-14px;bottom:-8px;z-index:-1;background:radial-gradient(closest-side,var(--paper) 62%,rgba(246,243,235,0) 100%)}
 .pill{background:var(--blue-soft);border-color:var(--blue-line);color:var(--blue-ink)}
 .eatbadge{background:rgba(255,255,255,.9);border:1px solid var(--line-soft);color:var(--blue-ink)}
 .opt .rec{background:var(--blue-deep);color:#fff}
@@ -1041,8 +1032,7 @@ aside.panel{box-shadow:var(--shadow)}
 /* the opening screen needs a little more room for the skyline on small screens */
 @media (max-width:1080px){
   .hero{padding-bottom:54px}
-  .sechead{max-width:calc(100vw - 28px);padding:24px 22px 20px;margin:24px auto 14px;border-radius:22px}
-  .endbar{max-width:calc(100vw - 28px);margin-bottom:32px}
+  .endbar{padding-bottom:32px}
 }
 
 /* ---------- print ---------- */
@@ -1064,4 +1054,10 @@ aside.panel{box-shadow:var(--shadow)}
   .tip,.leg,.verdict,.extra,.notice,.retline{background:#f7f7f7!important;border-color:#ddd!important}
   .addstop,.modal,.detail,.timebtn,.durline,.timepop{display:none!important}
   .tl .row{grid-template-columns:1fr}
+}
+
+/* the two hero cards stack on narrow screens */
+@media (max-width:1080px){
+  .hero-inner{grid-template-columns:1fr;gap:16px}
+  .hero-media{order:-1;padding:16px}
 }
