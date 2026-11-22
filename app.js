@@ -1136,6 +1136,34 @@ function routeSegments(leg){
   return segs;
 }
 
+/* real track geometry: RAILCHAIN joins the pieces in RAILSEG (data.js) */
+function railPath(a, b){
+  if(!a || !b || typeof RAILCHAIN === 'undefined') return null;
+  const steps = RAILCHAIN[a + '|' + b];
+  if(!steps) return null;
+  const out = [];
+  for(const step of steps){
+    const cut = step.indexOf('->');
+    const x = step.slice(0, cut), y = step.slice(cut + 2);
+    let piece = RAILSEG[x < y ? x + '|' + y : y + '|' + x];
+    if(!piece) return null;
+    if(x > y) piece = piece.slice().reverse();
+    for(const pt of piece){
+      const last = out[out.length - 1];
+      if(!last || last[0] !== pt[0] || last[1] !== pt[1]) out.push(pt);
+    }
+  }
+  return out.length > 1 ? out : null;
+}
+
+function railStations(a, b){
+  const steps = (typeof RAILCHAIN !== 'undefined' && a && b) ? RAILCHAIN[a + '|' + b] : null;
+  if(!steps) return [a, b];
+  const names = [a];
+  steps.forEach(s => names.push(s.slice(s.indexOf('->') + 2)));
+  return names;
+}
+
 const segMins = meters => Math.max(1, Math.round(meters / 78));
 
 function routeSheetHtml(leg, segs){
@@ -1169,9 +1197,9 @@ function routeSheetHtml(leg, segs){
     '<div class="rmapwrap"><div id="routeMap" class="rmap"></div></div>' +
     (segs.selfStation ? '<p class="rnote">Both ends are closest to ' + esc(segs.selfStation) + ', so there is no train to catch — this leg is on foot.</p>' : '') +
     '<ol class="rsteps">' + steps + '</ol>' +
-    (rail ? '<p class="rnote">The walks at each end are routed on real streets. The railway section is drawn as a straight line between the two stations — check the platform screens on the day for the exact service.</p>' : '') +
+    (rail ? '<p class="rnote">The railway follows the real subway and JR tracks, with a dot at every station it passes. Check the platform screens on the day for the exact service.</p>' : '') +
     (segs.some(sg => sg.kind === 'onward') ? '<p class="rnote">The last stretch is a local bus or a taxi from the station; the grey line is the direction, not a street route.</p>' : '') +
-    '<p class="rnote" id="routeSource">Street routing by OpenStreetMap.</p>';
+    '<p class="rnote" id="routeSource">Streets and railway tracks from OpenStreetMap.</p>';
 }
 
 function ensureRouteMap(){
@@ -1217,8 +1245,21 @@ async function drawRoute(leg, segs){
       coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
       L.polyline(coords, {color:'#8A8F98', weight:4, opacity:.6, dashArray:'10 8', lineCap:'round'}).addTo(layer);
     } else {
-      coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
-      L.polyline(coords, {color:'#2F7E8E', weight:6, opacity:.45, dashArray:'2 9', lineCap:'round'}).addTo(layer);
+      const track = railPath(sg.from.n, sg.to.n);
+      coords = track || [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
+      if(track){
+        L.polyline(coords, {color:'#FFFFFF', weight:9, opacity:.9, lineCap:'round', lineJoin:'round'}).addTo(layer);
+        L.polyline(coords, {color:'#2F7E8E', weight:4.5, opacity:.95, lineCap:'round', lineJoin:'round'}).addTo(layer);
+        const via = railStations(sg.from.n, sg.to.n).slice(1, -1);
+        via.forEach(nm => {
+          const st = STATION_BY[nm];
+          if(!st) return;
+          L.circleMarker([st.lat, st.lon], {radius:3.4, color:'#2F7E8E', weight:2, fillColor:'#FFFFFF', fillOpacity:1})
+            .addTo(layer).bindTooltip(esc(st.n) + (st.jp ? ' · ' + esc(st.jp) : ''), {direction:'top'});
+        });
+      } else {
+        L.polyline(coords, {color:'#8A8F98', weight:4, opacity:.65, dashArray:'10 8', lineCap:'round'}).addTo(layer);
+      }
     }
     bounds.push(...coords);
     const stations = sg.station ? [[sg.from, sg.station]] : (sg.kind === 'ride' ? [[sg.from, sg.from], [sg.to, sg.to]] : []);
