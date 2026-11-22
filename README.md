@@ -36,8 +36,7 @@ works too.
 - **Full editing.** Drag any row within a day or onto another day, set a stop's exact
   start time, change any duration in 15-minute steps, remove a stop, add another from a
   photo chooser, or reset a day to the automatic plan.
-- **1–10 days**, 13 day trips across Kyushu (Dazaifu to Kagoshima, plus Hiroshima),
-  cost estimate, transit-pass comparison, route map and printable export.
+- **1–10 days** day trips across Kyushu, cost estimate, transit-pass comparison, route map and printable export.
 - **Readable type.** A / A− / A+ in the header sets the base size.
 
 ## Data
