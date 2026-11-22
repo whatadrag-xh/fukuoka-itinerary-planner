@@ -476,6 +476,8 @@ function schedule(day){
     const p = POI[it.id];
     if(!p) return;
     const leg = travel(prev, p, h.hub);
+    leg.from = {name: prev.name, jp: prev.jp || '', lat: prev.lat, lon: prev.lon, area: prev.area};
+    leg.to   = {name: p.name, jp: p.jp || '', lat: p.lat, lon: p.lon, area: p.area};
     const arrive = t + leg.min;
     const start = it.at != null ? Math.max(it.at, arrive) : arrive;
     const dur = it.dur != null ? it.dur : p.dwell;
@@ -630,9 +632,11 @@ function mealRow(r, dayIdx){
 function stopRow(r, dayIdx){
   const p = r.poi, leg = r.leg;
   const legHtml = leg
-    ? '<div class="leg"><b>' + esc(leg.mode) + '</b><span>' + mins(leg.min) + '</span>' +
+    ? '<button class="leg legbtn" data-route="' + dayIdx + ':' + r.idx + '" aria-label="Show the map to ' + esc(p.name) + '">' +
+      '<b>' + esc(leg.mode) + '</b><span>' + mins(leg.min) + '</span>' +
       '<span>' + (leg.fare ? yen(leg.fare) : 'free') + '</span>' +
-      (leg.detail ? '<span class="src">' + esc(leg.detail) + '</span>' : '') + '</div>' +
+      (leg.detail ? '<span class="src">' + esc(leg.detail) + '</span>' : '') +
+      '<span class="legmap">Map' + (leg.src === 'walk' ? ' &middot; walk' : '') + '</span></button>' +
       (leg.note ? '<div class="tip">' + esc(leg.note) + '</div>' : '')
     : '';
   const waitHtml = r.wait > 4 ? '<div class="waitnote">' + mins(r.wait) + ' to spare before this stop — wander nearby.</div>' : '';
@@ -1071,6 +1075,195 @@ function renderDetail(type, id){
 
   const scroll = $('#detailBody');
   if(scroll) scroll.scrollTop = 0;
+}
+
+/* ============================================================
+   ROUTE SHEET — how you get from this stop to the next one
+   ============================================================ */
+let RMAP = null;
+const FOOT = new Map();
+
+function footRoute(a, b){
+  const key = [a.lat, a.lon, b.lat, b.lon].map(v => Number(v).toFixed(5)).join(',');
+  if(FOOT.has(key)) return FOOT.get(key);
+  const url = 'https://routing.openstreetmap.de/routed-foot/route/v1/driving/' +
+    a.lon + ',' + a.lat + ';' + b.lon + ',' + b.lat +
+    '?overview=full&geometries=geojson&steps=false';
+  const p = fetch(url).then(r => {
+    if(!r.ok) throw new Error('route ' + r.status);
+    return r.json();
+  }).then(d => {
+    const route = (d.routes || [])[0];
+    if(!route) throw new Error('no route');
+    return {coords: route.geometry.coordinates.map(c => [c[1], c[0]]),
+            dist: route.distance, dur: route.duration};
+  });
+  FOOT.set(key, p);
+  return p;
+}
+
+function routeSegments(leg){
+  const from = leg.from, to = leg.to;
+  if(!from || !to) return [];
+  if(leg.src === 'walk') return [{kind:'walk', from, to, title:'Walk it'}];
+
+  const a = nearestStation(from.lat, from.lon, 8);
+  const b = nearestStation(to.lat, to.lon, 20);
+  if(!a) return [{kind:'ride', from, to, title:leg.mode, detail:leg.detail, min:leg.min, fare:leg.fare}];
+  /* both ends sit by the same station: there is no train to take */
+  if(b && b.s === a.s){
+    const only = [{kind:'walk', from, to, title:'Walk it'}];
+    only.selfStation = a.s.n;
+    return only;
+  }
+
+  const segs = [];
+  const toStation = st => ({name:st.n, jp:st.jp, lat:st.lat, lon:st.lon});
+  if(haversine(from, a.s) * 1000 > 200){
+    segs.push({kind:'walk', from, to:toStation(a.s), title:'Walk to ' + a.s.n, station:a.s});
+  }
+  const arrive = b || a;
+  segs.push({kind:'ride', from:a.s, to:arrive.s, title:leg.mode, detail:leg.detail,
+             min:leg.min, fare:leg.fare});
+  if(b){
+    const left = haversine(b.s, to);
+    if(left <= 1.2){
+      segs.push({kind:'walk', from:toStation(b.s), to, title:'Walk to ' + to.name, station:b.s});
+    } else {
+      segs.push({kind:'onward', from:toStation(b.s), to, title:'Onward to ' + to.name, km:left});
+    }
+  }
+  return segs;
+}
+
+const segMins = meters => Math.max(1, Math.round(meters / 78));
+
+function routeSheetHtml(leg, segs){
+  const chips = segs.selfStation
+    ? '<span class="rchip">On foot</span><span class="rchip">no fare</span>'
+    : '<span class="rchip">' + esc(leg.mode) + '</span>' +
+      '<span class="rchip" data-chip="min">' + mins(leg.min) + '</span>' +
+      '<span class="rchip">' + (leg.fare ? yen(leg.fare) : 'no fare') + '</span>';
+  const steps = segs.map((sg, i) => {
+    const est = Math.round(haversine(sg.from, sg.to) * 1000);
+    return '<li class="rstep" data-seg="' + i + '">' +
+      '<span class="rnum">' + (i+1) + '</span>' +
+      '<div class="rbody"><b>' + esc(sg.title) + '</b>' +
+        '<div class="rval">' + (sg.kind === 'walk'
+          ? 'about ' + est + ' m · ' + segMins(est) + ' min'
+          : sg.kind === 'onward'
+            ? Math.round(sg.km * 10) / 10 + ' km · local bus or taxi from the station'
+            : esc(sg.detail || '') + (sg.min ? ' · ' + mins(sg.min) : '') + (sg.fare ? ' · ' + yen(sg.fare) : '')) +
+        '</div>' +
+        (sg.kind === 'ride' && sg.from.jp
+          ? '<div class="rsub">' + esc(sg.from.n) + ' ' + esc(sg.from.jp) + ' → ' + esc(sg.to.n) + ' ' + esc(sg.to.jp) + '</div>'
+          : '') +
+      '</div></li>';
+  }).join('');
+  const rail = segs.some(sg => sg.kind === 'ride');
+  return '<div class="rhead">' +
+      '<p class="eyebrow">Getting there · 道順</p>' +
+      '<h2 id="routeTitle">' + esc(leg.from.name) + ' <span class="rarrow">→</span> ' + esc(leg.to.name) + '</h2>' +
+      '<div class="rchips">' + chips + '</div>' +
+    '</div>' +
+    '<div class="rmapwrap"><div id="routeMap" class="rmap"></div></div>' +
+    (segs.selfStation ? '<p class="rnote">Both ends are closest to ' + esc(segs.selfStation) + ', so there is no train to catch — this leg is on foot.</p>' : '') +
+    '<ol class="rsteps">' + steps + '</ol>' +
+    (rail ? '<p class="rnote">The walks at each end are routed on real streets. The railway section is drawn as a straight line between the two stations — check the platform screens on the day for the exact service.</p>' : '') +
+    (segs.some(sg => sg.kind === 'onward') ? '<p class="rnote">The last stretch is a local bus or a taxi from the station; the grey line is the direction, not a street route.</p>' : '') +
+    '<p class="rnote" id="routeSource">Street routing by OpenStreetMap.</p>';
+}
+
+function ensureRouteMap(){
+  if(!window.L) return null;
+  if(RMAP) return RMAP;
+  RMAP = L.map('routeMap', {scrollWheelZoom:false, zoomControl:true, attributionControl:true})
+    .setView([33.5902, 130.4207], 13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(RMAP);
+  return RMAP;
+}
+
+function pinHtml(letter, kind){
+  return '<div class="rpin ' + kind + '">' + letter + '</div>';
+}
+
+async function drawRoute(leg, segs){
+  const map = ensureRouteMap();
+  if(!map) return;
+  const layer = L.layerGroup().addTo(map);
+  const bounds = [];
+  for(let i = 0; i < segs.length; i++){
+    const sg = segs[i];
+    let coords;
+    if(sg.kind === 'walk'){
+      let routed = null;
+      try { routed = await footRoute(sg.from, sg.to); } catch(_) {}
+      if(routed){
+        coords = routed.coords;
+        const li = document.querySelector('.rstep[data-seg="' + i + '"] .rval');
+        if(li) li.textContent = Math.round(routed.dist) + ' m · ' + Math.round(routed.dur / 60) + ' min on foot';
+        const chip = document.querySelector('[data-chip="min"]');
+        if(chip && segs.length === 1) chip.textContent = Math.round(routed.dur / 60) + ' min';
+      } else {
+        coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
+        const li = document.querySelector('.rstep[data-seg="' + i + '"] .rval');
+        if(li) li.textContent = 'Straight-line estimate — the street router did not answer';
+      }
+      L.polyline(coords, {color:'#4B79D6', weight:5, opacity:.9, lineCap:'round', lineJoin:'round'}).addTo(layer);
+    } else if(sg.kind === 'onward'){
+      coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
+      L.polyline(coords, {color:'#8A8F98', weight:4, opacity:.6, dashArray:'10 8', lineCap:'round'}).addTo(layer);
+    } else {
+      coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
+      L.polyline(coords, {color:'#2F7E8E', weight:6, opacity:.45, dashArray:'2 9', lineCap:'round'}).addTo(layer);
+    }
+    bounds.push(...coords);
+    const stations = sg.station ? [[sg.from, sg.station]] : (sg.kind === 'ride' ? [[sg.from, sg.from], [sg.to, sg.to]] : []);
+    stations.forEach(([pt, info]) => {
+      if(!info || !info.kind) return;
+      L.marker([pt.lat, pt.lon], {icon:L.divIcon({className:'', html:pinHtml('▮', 'station'), iconSize:[16,16], iconAnchor:[8,8]})})
+        .addTo(layer)
+        .bindPopup('<b>' + esc(info.n || pt.name) + '</b><br>' + esc(info.jp || pt.jp || '') + '<br>' + esc(info.kind || ''));
+    });
+  }
+  const a = segs[0].from, b = segs[segs.length - 1].to;
+  L.marker([a.lat, a.lon], {icon:L.divIcon({className:'', html:pinHtml('A', 'start'), iconSize:[28,28], iconAnchor:[14,14]})})
+    .addTo(layer).bindPopup(esc(leg.from.name));
+  L.marker([b.lat, b.lon], {icon:L.divIcon({className:'', html:pinHtml('B', 'end'), iconSize:[28,28], iconAnchor:[14,14]})})
+    .addTo(layer).bindPopup(esc(leg.to.name));
+  map.invalidateSize();
+  const fit = () => { map.invalidateSize(); map.fitBounds(bounds, {padding:[42,42], maxZoom:17}); };
+  fit();
+  setTimeout(fit, 260);
+}
+
+function openRoute(di, idx){
+  const day = state.plan[di];
+  if(!day) return;
+  const row = schedule(day).rows.find(r => r.idx === idx && r.kind === 'stop');
+  if(!row || !row.leg) return;
+  const leg = row.leg;
+  const segs = routeSegments(leg);
+  $('#routeBody').innerHTML = routeSheetHtml(leg, segs);
+  const m = $('#routeModal');
+  m.classList.add('open');
+  m.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('locked');
+  drawRoute(leg, segs);
+  const x = m.querySelector('.glass-x');
+  if(x) x.focus({preventScroll:true});
+}
+
+function closeRoute(){
+  const m = $('#routeModal');
+  if(!m) return;
+  m.classList.remove('open');
+  m.setAttribute('aria-hidden', 'true');
+  if(!$('#detailModal').classList.contains('open')) document.body.classList.remove('locked');
+  if(RMAP){ RMAP.remove(); RMAP = null; }
 }
 
 function openDetail(ref){
@@ -1589,6 +1782,13 @@ window.addEventListener('scroll', () => {
 
 /* place details */
 document.addEventListener('click', e => {
+  if(e.target.closest('[data-rclose]')){ closeRoute(); return; }
+  const route = e.target.closest('[data-route]');
+  if(route){
+    const [d, i] = route.dataset.route.split(':').map(Number);
+    openRoute(d, i);
+    return;
+  }
   if(e.target.closest('[data-dclose]')){ closeDetail(); return; }
   const hit = e.target.closest('[data-detail]');
   if(hit){ openDetail(hit.dataset.detail); }
@@ -1628,6 +1828,7 @@ $('#sheetSearch').addEventListener('input', e => {
 document.addEventListener('keydown', e => {
   if(e.key !== 'Escape') return;
   if(TPOP){ closeTimePicker(); return; }
+  if($('#routeModal').classList.contains('open')){ closeRoute(); return; }
   if($('#detailModal').classList.contains('open')){ closeDetail(); return; }
   closePanel();
 });

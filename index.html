@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20261122k">
+<link rel="stylesheet" href="styles.css?v=20261122t">
 </head>
 <body>
 
@@ -234,8 +234,16 @@
   </div>
 </div>
 
+<div class="detail" id="routeModal" aria-hidden="true">
+  <div class="detail-back" data-rclose></div>
+  <div class="glass routeglass" role="dialog" aria-modal="true" aria-labelledby="routeTitle">
+    <button class="glass-x" data-rclose aria-label="Close">×</button>
+    <div class="glass-scroll" id="routeBody"></div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="data.js?v=20261122k"></script>
-<script src="app.js?v=20261122k"></script>
+<script src="data.js?v=20261122t"></script>
+<script src="app.js?v=20261122t"></script>
 </body>
 </html>

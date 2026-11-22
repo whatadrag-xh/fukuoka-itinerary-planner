@@ -1095,3 +1095,45 @@ aside.panel{box-shadow:var(--shadow)}
   .eatlabel{flex:0 0 76px}
   .eatnav{margin-top:14px}
 }
+
+
+/* ---------- how to get there: the leg opens a route sheet ---------- */
+.legbtn{font:inherit;text-align:left;cursor:pointer;transition:border-color .18s,background .18s}
+.legbtn:hover,.legbtn:focus-visible{border-color:var(--blue);background:#fff;outline:none}
+.legmap{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-deep);
+  border-left:1px solid var(--blue-line);padding-left:10px;font-weight:600}
+.legmap::after{content:" →"}
+
+.routeglass{width:min(760px,calc(100vw - 28px))}
+.rhead{padding:22px 26px 12px}
+.rhead h2{font-family:var(--serif);font-size:clamp(1.25rem,2.6vw,1.7rem);font-weight:600;color:var(--ink);
+  line-height:1.25;margin:6px 0 10px;letter-spacing:.01em}
+.rarrow{color:var(--blue);font-weight:400}
+.rchips{display:flex;gap:8px;flex-wrap:wrap}
+.rchip{font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--blue-ink);
+  background:var(--blue-wash);border:1px solid var(--blue-line);border-radius:999px;padding:5px 11px}
+.rmapwrap{padding:4px 26px 16px}
+.rmap{height:min(46vh,360px);border-radius:18px;overflow:hidden;border:1px solid var(--line-soft);
+  background:var(--paper2);z-index:0}
+.rsteps{list-style:none;margin:0;padding:0 26px 6px;display:grid;gap:2px}
+.rstep{display:flex;gap:14px;padding:13px 0;border-top:1px solid var(--line-soft)}
+.rstep:first-child{border-top:0}
+.rnum{flex:0 0 26px;height:26px;border-radius:50%;background:var(--blue-wash);border:1px solid var(--blue-line);
+  color:var(--blue-deep);display:grid;place-items:center;font-size:.74rem;font-weight:600}
+.rbody{min-width:0}
+.rbody b{display:block;font-family:var(--serif);font-size:1.02rem;color:var(--ink);font-weight:600}
+.rval{font-size:.84rem;color:var(--ink-soft);margin-top:2px}
+.rsub{font-size:.72rem;color:var(--ink-dim);margin-top:3px;letter-spacing:.03em}
+.rnote{margin:0;padding:4px 26px 22px;font-size:.72rem;color:var(--ink-dim);line-height:1.6}
+.rpin{display:grid;place-items:center;border-radius:50%;color:#fff;font-size:.74rem;font-weight:600;
+  width:28px;height:28px;box-shadow:0 6px 14px rgba(20,22,26,.24);border:2px solid #fff}
+.rpin.start{background:#4B79D6}
+.rpin.end{background:#14161A}
+.rpin.station{width:16px;height:16px;font-size:.5rem;background:#2F7E8E;border-width:1px;box-shadow:none}
+@media (max-width:760px){
+  .rhead{padding:18px 18px 10px}
+  .rmapwrap{padding:2px 18px 14px}
+  .rmap{height:min(40vh,300px)}
+  .rsteps{padding:0 18px 4px}
+  .rnote{padding:2px 18px 18px}
+}

@@ -716,6 +716,52 @@ function travel(a,b,hub){
     detail:'Nishitetsu bus outside the flat zone',note:null};
 }
 
+/* ============================================================
+   STATIONS — real coordinates, used by the route maps
+   ============================================================ */
+const STATIONS = [
+  {n:'Hakata', jp:'博多駅', lat:33.5903, lon:130.4208, kind:'JR · subway · city bus'},
+  {n:'Nakasu-Kawabata', jp:'中洲川端駅', lat:33.5932, lon:130.4065, kind:'Subway'},
+  {n:'Gion', jp:'祇園駅', lat:33.5936, lon:130.4090, kind:'Subway'},
+  {n:'Tenjin', jp:'天神駅', lat:33.5892, lon:130.3996, kind:'Subway'},
+  {n:'Tenjin-minami', jp:'天神南駅', lat:33.5854, lon:130.4019, kind:'Subway'},
+  {n:'Akasaka', jp:'赤坂駅', lat:33.5860, lon:130.3937, kind:'Subway'},
+  {n:'Ohorikoen', jp:'大濠公園駅', lat:33.5846, lon:130.3839, kind:'Subway'},
+  {n:'Nishijin', jp:'西新駅', lat:33.5817, lon:130.3748, kind:'Subway'},
+  {n:'Meinohama', jp:'姪浜駅', lat:33.5789, lon:130.3266, kind:'Subway · JR'},
+  {n:'Fukuoka Airport', jp:'福岡空港駅', lat:33.5859, lon:130.4507, kind:'Subway'},
+  {n:'Nishitetsu-Fukuoka', jp:'西鉄福岡(天神)駅', lat:33.5894, lon:130.4004, kind:'Nishitetsu Tenjin Ōmuta line'},
+  {n:'Nishitetsu-Yakuin', jp:'薬院駅', lat:33.5817, lon:130.4021, kind:'Nishitetsu'},
+  {n:'Nishitetsu-Hirao', jp:'西鉄平尾駅', lat:33.5648, lon:130.4103, kind:'Nishitetsu'},
+  {n:'Nishitetsu-Ohashi', jp:'西鉄大橋駅', lat:33.5489, lon:130.4380, kind:'Nishitetsu'},
+  {n:'Nishitetsu-Futsukaichi', jp:'西鉄二日市駅', lat:33.5026, lon:130.5186, kind:'Nishitetsu'},
+  {n:'Nishitetsu-Dazaifu', jp:'西鉄太宰府駅', lat:33.5199, lon:130.5287, kind:'Nishitetsu Dazaifu line'},
+  {n:'Nishitetsu-Yanagawa', jp:'西鉄柳川駅', lat:33.1637, lon:130.4036, kind:'Nishitetsu Tenjin Ōmuta line'},
+  {n:'Yoshizuka', jp:'吉塚駅', lat:33.5983, lon:130.4296, kind:'JR Kagoshima main line'},
+  {n:'Takeshita', jp:'竹下駅', lat:33.5806, lon:130.4322, kind:'JR Kagoshima main line'},
+  {n:'Kasuga', jp:'春日駅', lat:33.5346, lon:130.4607, kind:'JR Kagoshima main line'},
+  {n:'Kurume', jp:'久留米駅', lat:33.3195, lon:130.5013, kind:'JR Kyushu Shinkansen · Kagoshima line'},
+  {n:'Kokura', jp:'小倉駅', lat:33.8865, lon:130.8827, kind:'JR Sanyo Shinkansen · Kagoshima line'},
+  {n:'Beppu', jp:'別府駅', lat:33.2794, lon:131.5006, kind:'JR Nippo main line'},
+  {n:'Yufuin', jp:'由布院駅', lat:33.2634, lon:131.3726, kind:'JR Kyudai main line'},
+  {n:'Karatsu', jp:'唐津駅', lat:33.4526, lon:129.9693, kind:'JR Chikuhi line'},
+  {n:'Yanagawa', jp:'柳川駅', lat:33.1642, lon:130.4045, kind:'Nishitetsu Tenjin Ōmuta line'},
+  {n:'Nagasaki', jp:'長崎駅', lat:32.7522, lon:129.8685, kind:'JR Nishi-Kyushu Shinkansen'},
+  {n:'Kumamoto', jp:'熊本駅', lat:32.7903, lon:130.6888, kind:'JR Kyushu Shinkansen'},
+  {n:'Kagoshima-Chuo', jp:'鹿児島中央駅', lat:31.5836, lon:130.5417, kind:'JR Kyushu Shinkansen'},
+  {n:'Hiroshima', jp:'広島駅', lat:34.3975, lon:132.4752, kind:'JR Sanyo Shinkansen'},
+  {n:'Sasebo', jp:'佐世保駅', lat:33.1643, lon:129.7244, kind:'JR Sasebo line'}
+];
+
+function nearestStation(lat, lon, maxKm){
+  let best = null;
+  for(const s of STATIONS){
+    const d = haversine({lat, lon}, s);
+    if(d <= (maxKm || 6) && (!best || d < best.d)) best = {s, d};
+  }
+  return best;
+}
+
 const JR_BANDS = [[3,200],[6,240],[10,270],[15,340],[20,450],[25,560],[30,660],[35,760],[40,870],[45,990],[50,1090],[60,1300],[70,1510],[80,1730]];
 function jrFare(km){
   for(const [lim,fare] of JR_BANDS) if(km<=lim) return fare;
