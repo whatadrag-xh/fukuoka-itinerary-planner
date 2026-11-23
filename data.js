@@ -161,7 +161,7 @@ const POIS = [
   dwell:40, fee:0,
   blurb:'Harbour mall with a fish market and the ferry pier for Shikanoshima.',
   near:[{n:'Hakata Port Tower',jp:'博多港タワー',w:'2 min walk',note:'Free observation deck.'},
-        {n:'Fukuoka Municipal Ferry',jp:'市営渡船',w:'0 min',note:'Boat to Shikanoshima, ¥680 return.'},
+        {n:'Fukuoka Municipal Ferry',jp:'市営渡船',w:'0 min',note:'Boat to Shikanoshima, ¥680 one way, 30 min.'},
         {n:'Hakata Station',jp:'博多駅',w:'15 min bus',note:'City bus ¥150 from the port.'}]},
 
  {id:'uminonaka', name:'Uminonakamichi Seaside Park', jp:'海の中道海浜公園', area:'bay', cats:['nature'], lat:33.6636, lon:130.3620,
@@ -175,6 +175,7 @@ const POIS = [
  {id:'shikanoshima', name:'Shikanoshima Island', jp:'志賀島', area:'bay', cats:['nature','food'], lat:33.6620, lon:130.3050,
   dwell:150, fee:0,
   blurb:'A slow island of fishing ports, seafood set meals and a hilltop view back over the bay.',
+  tip:'Take the Fukuoka Municipal Ferry from Bayside Place: ¥680 one way, 30 minutes, via Nishitozaki. About 15 boats a day, and the last one back is early evening on Sundays.',
   near:[{n:'Shikajima Shrine',jp:'志賀海神社',w:'5 min walk',note:'Ancient shrine tied to the Munakata deities.'},
         {n:'Katsuma Coast',jp:'勝馬海岸',w:'20 min bus',note:'Quiet swimming beach on the far side.'},
         {n:'Uminonakamichi',jp:'海の中道海浜公園',w:'15 min bus',note:'Combine the two on one loop.'}]},
@@ -315,7 +316,7 @@ const POIS = [
  {id:'sakurajima', name:'Sakurajima Volcano', jp:'桜島', area:'kagoshima', cats:['nature','view'], lat:31.5900, lon:130.6600,
   dwell:150, fee:400, must:true,
   blurb:'An active volcano across the bay: a 15-minute ferry, then lava paths and the Yunohira lookout.',
-  tip:'Ferry ¥200 each way, 24 hours. The island bus to the Yunohira observatory stops running in the late afternoon.'},
+  tip:'Ferry ¥250 each way, 15 minutes, from 04:00; the last boat back leaves Sakurajima at 23:00. The island bus to the Yunohira observatory stops running in the late afternoon.'},
 
  {id:'senganen', name:'Sengan-en Garden', jp:'仙巌園', area:'kagoshima', cats:['nature','view'], lat:31.6180, lon:130.5770,
   dwell:70, fee:1000,
@@ -333,7 +334,7 @@ const POIS = [
 
  {id:'itsukushima', name:'Itsukushima Shrine', jp:'厳島神社', area:'hiroshima', cats:['temple','view'], lat:34.2960, lon:132.3197,
   dwell:120, fee:300,
-  blurb:'The torii that appears to float at high tide, on Miyajima island 25 minutes by ferry from the city.',
+  blurb:'The torii that appears to float at high tide, on Miyajima island — 25 minutes by JR to Miyajimaguchi, then a 10-minute ferry.',
   tip:'Check the tide table before you go: high tide for the floating look, low tide to walk out to the gate.'},
 
  {id:'shukkeien', name:'Shukkeien Garden', jp:'縮景園', area:'hiroshima', cats:['nature'], lat:34.4000, lon:132.4670,
@@ -579,7 +580,7 @@ const TRIPS = {
   beppu:{legs:{
       hakata:{min:120,fare:5900,mode:'JR Sonic',detail:'Hakata → Beppu, about 2 h',src:'jr'},
       tenjin:{min:132,fare:6160,mode:'Subway + JR',detail:'Subway to Hakata (¥260) then Sonic (¥5,900)',src:'jr'}},
-    note:'Two hours each way. The hells are on the west side of town; the station is on the east.', long:true},
+    note:'Two hours each way. The Sonic runs down the coast through Kokura and Nakatsu; the hells are on the west side of town and the station on the east.', long:true},
   yufuin:{legs:{
       hakata:{min:135,fare:5700,mode:'JR Yufuin-no-Mori',detail:'Hakata → Yufuin, 2 h 15 (reserve the scenic train)',src:'jr'},
       tenjin:{min:147,fare:5960,mode:'Subway + JR',detail:'Subway to Hakata (¥260) then Yufuin-no-Mori (¥5,700)',src:'jr'}},
@@ -673,8 +674,91 @@ function haversine(a,b){
 }
 const SUBWAY_AREAS = new Set(['tenjin','hakata','nakasu','ohori','momochi']);
 
+/* ============================================================
+   FERRIES — the islands you can actually sleep on the itinerary.
+   Fares and crossing times from the operators' own 2026 pages:
+   Fukuoka City ferry (Hakata–Shikanoshima, ¥680 single, 30 min),
+   Kagoshima City Sakurajima ferry (¥250, 15 min) and JR West
+   Miyajima ferry (¥200 + ¥100 visitor tax, 10 min). The boat lines
+   are the published routes, not straight lines between pins.
+   ============================================================ */
+const FERRIES = {
+  shikanoshima:{
+    name:'Fukuoka Municipal Ferry', jp:'福岡市営渡船',
+    from:{n:'Hakata Pier', jp:'博多旅客待合所', lat:33.6075, lon:130.4005},
+    to:{n:'Shikanoshima', jp:'志賀島渡船場', lat:33.6622, lon:130.3139},
+    min:30, fare:680,
+    detail:'Hakata Pier → Nishitozaki → Shikanoshima, about 30 min',
+    note:'Adult ¥680 each way; a return bought on the island is ¥1,300. About 15 boats a day (first 07:05, last 23:00 Monday to Saturday), no booking and no cars.',
+    access:{mode:'Bus to Bayside Place', min:15, fare:150},
+    path:[[33.6075,130.4005],[33.60416,130.39967],[33.60422,130.39997],[33.60465,130.40049],[33.60523,130.3998],[33.60625,130.39931],[33.61508,130.38772],[33.61839,130.38625],[33.62047,130.38219],[33.62371,130.37373],[33.62796,130.37117],[33.64795,130.36552],[33.64842,130.36456],[33.64883,130.36349],[33.64903,130.36252],[33.64926,130.36002],[33.649,130.36251],[33.64878,130.36345],[33.64842,130.36416],[33.64792,130.36464],[33.6471,130.36506],[33.64634,130.36532],[33.64545,130.36542],[33.64468,130.3655],[33.64381,130.36541],[33.6429,130.36489],[33.64214,130.36408],[33.64152,130.36305],[33.64093,130.36157],[33.64056,130.36004],[33.64049,130.35807],[33.64062,130.35668],[33.64116,130.35506],[33.64309,130.34817],[33.64599,130.33658],[33.64764,130.33296],[33.64984,130.32781],[33.65273,130.32223],[33.65502,130.31938],[33.65813,130.31627],[33.65942,130.31385],[33.66029,130.31341],[33.66108,130.3133],[33.66169,130.31376],[33.66168,130.31382],[33.66215,130.31395]]
+  },
+  sakurajima:{
+    name:'Sakurajima Ferry', jp:'桜島フェリー',
+    from:{n:'Kagoshima Port', jp:'鹿児島港', lat:31.5949, lon:130.5590},
+    to:{n:'Sakurajima Port', jp:'桜島港', lat:31.5912, lon:130.5990},
+    min:15, fare:250,
+    detail:'Kagoshima Port → Sakurajima Port, 15 min across the bay',
+    note:'Adult ¥250 each way, paid at Sakurajima port. Boats run 04:00–23:30, and the last one back leaves Sakurajima at 23:00. The island bus day pass is ¥500.',
+    access:{mode:'Tram or 20-minute walk to the ferry terminal', min:15, fare:170},
+    path:[[31.5949,130.559],[31.5938,130.5686],[31.5926,130.579],[31.5916,130.589],[31.5912,130.599]]
+  },
+  itsukushima:{
+    name:'JR West Miyajima Ferry', jp:'JR西日本宮島フェリー',
+    from:{n:'Miyajimaguchi', jp:'宮島口', lat:34.3122, lon:132.3020},
+    to:{n:'Miyajima', jp:'宮島', lat:34.2967, lon:132.3187},
+    min:10, fare:200,
+    detail:'Miyajimaguchi → Miyajima, 10 min across the strait',
+    note:'Adult ¥200 each way plus the ¥100 Miyajima visitor tax on the way over. Free with a Japan Rail Pass; the Matsudai ferry alongside charges the same.',
+    access:{mode:'JR San-yō Main Line to Miyajimaguchi', min:26, fare:420},
+    path:[[34.3122,132.302],[34.3098,132.3064],[34.305,132.312],[34.3,132.3164],[34.2967,132.3187]]
+  }
+};
+const FERRY_TO = Object.fromEntries(Object.entries(FERRIES).map(([id, f]) => [id, f]));
+
+/* an island leg is a boat, not a train: the fare, the crossing time and the
+   published route all come from the ferry table rather than the fare bands */
+function ferryLeg(a, b, f, base){
+  const out = !!FERRIES[b.id];
+  const here = out ? a : b;
+  const dep = out ? f.from : f.to;
+  const arr = out ? f.to : f.from;
+  const dockKm = haversine(here, dep);
+  const onFoot = dockKm <= 1.2;
+  const accessMin = base ? f.access.min : (onFoot ? Math.max(3, Math.round(dockKm / 4.4 * 60)) : f.access.min);
+  const accessFare = base ? f.access.fare : (onFoot ? 0 : f.access.fare);
+  const baseMin = base ? base.min : 0, baseFare = base ? base.fare : 0;
+  return {
+    min: baseMin + f.min + accessMin, fare: baseFare + f.fare + accessFare,
+    mode: (base ? base.mode + ' + ' : '') + f.name,
+    detail: base ? base.detail + '; then ' + f.access.mode.toLowerCase() + ', then the ' + f.min + '-minute ferry' : f.detail,
+    src: 'ferry', note: f.note,
+    ferry: {
+      name: f.name, jp: f.jp, dep, arr, min: f.min, fare: f.fare,
+      path: out ? f.path : f.path.slice().reverse(),
+      access: f.access, accessKm: dockKm, onFoot, detail: f.detail, note: f.note,
+      base: base || null
+    }
+  };
+}
+
 function travel(a,b,hub){
   hub = hub||'hakata';
+  /* a boat only makes sense once you are in the port city: from Fukuoka the
+     Shinkansen leg to Kagoshima comes first, and the ferry is a local leg there */
+  const boat = FERRIES[b.id] || FERRIES[a.id];
+  if(boat){
+    const out = !!FERRIES[b.id];
+    const here = out ? a : b;
+    const dock = out ? boat.from : boat.to;
+    if(haversine(here, dock) <= 25) return ferryLeg(a, b, boat);
+    /* a day trip to an island starts with the train to its region */
+    if(out && TRIP_REGIONS.includes(b.area) && a.area !== b.area){
+      const r = b.area, T = TRIPS[r];
+      const c = T.legs[hub] || T.legs.hakata || T.legs.tenjin;
+      return ferryLeg(a, b, boat, {min:c.min, fare:c.fare, mode:c.mode, detail:c.detail, src:c.src});
+    }
+  }
   const ra = TRIP_REGIONS.includes(a.area), rb = TRIP_REGIONS.includes(b.area);
 
   if((ra||rb) && a.area!==b.area){
@@ -956,7 +1040,7 @@ const EAT = [
    s:'The chain started in Kyoto, but the roasted tea is the point here: it is where Tenjin office workers go for a proper tea break instead of coffee.',
    t:['Take a window seat over Kego Park.','Try the hojicha roll if the seasonal parfait has sold out.','Last order is half an hour before closing.']},
 
-  {id:'hachiraku', meal:'tea', name:'Hachiraku Manju', jp:'蜂楽饅頭 天神岩田屋店', area:'tenjin', img:'umegae',
+  {id:'hachiraku', meal:'tea', name:'Hachiraku Manju', jp:'蜂楽饅頭 天神岩田屋店', area:'tenjin', img:'hachiraku-manju',
    where:'Iwata-ya department store B2F · Tenjin 2-5-35', price:'About ¥130 a bun', open:'10:00–20:00, the store’s closing days',
    rec:'Honey manju turned on a hot plate in front of you — two kinds only, white bean or red bean — eaten warm out of the paper bag.',
    w:'A Fukuoka chain that has been grilling these round cakes since the 1950s; the Iwata-ya counter has a permanent queue that moves quickly.',
@@ -1445,6 +1529,7 @@ const RAILSEG = {
   'Akasaka|Nishitetsu-Fukuoka':[[33.58889,130.38951],[33.58924,130.39125],[33.59001,130.39463],[33.59021,130.39531],[33.59054,130.39577],[33.59074,130.39614],[33.59103,130.39741]],
   'Akasaka|Ohorikoen':[[33.58906,130.39037],[33.58859,130.38774],[33.58847,130.38641],[33.58907,130.38245],[33.58939,130.38117],[33.58981,130.37989],[33.59008,130.37875]],
   'Akasaka|Tenjin':[[33.58908,130.39036],[33.59005,130.39462],[33.59025,130.39528],[33.59058,130.39573],[33.59079,130.39612],[33.5909,130.39653],[33.59123,130.39828]],
+  'Beppu|Kokura':[[33.27962,131.50031],[33.2817,131.50134],[33.28313,131.50167],[33.29173,131.50047],[33.3183,131.49906],[33.31933,131.49873],[33.32669,131.49458],[33.32905,131.49342],[33.33078,131.49298],[33.33621,131.49263],[33.33979,131.49306],[33.34291,131.49314],[33.34624,131.49369],[33.35463,131.49631],[33.35878,131.49743],[33.35994,131.49802],[33.36069,131.49862],[33.3611,131.49927],[33.36365,131.50571],[33.36894,131.52017],[33.3695,131.52287],[33.36996,131.52922],[33.37097,131.53619],[33.36677,131.551],[33.3665,131.55361],[33.36667,131.55462],[33.36709,131.55552],[33.36801,131.55661],[33.37432,131.56058],[33.37661,131.56236],[33.37723,131.56357],[33.37802,131.56735],[33.37877,131.56906],[33.37995,131.57082],[33.38269,131.57359],[33.38527,131.57907],[33.38572,131.57971],[33.38667,131.5805],[33.38876,131.5813],[33.39134,131.58117],[33.39234,131.5813],[33.39322,131.58187],[33.39548,131.58452],[33.39634,131.58516],[33.39789,131.58557],[33.40138,131.58583],[33.40286,131.58543],[33.40443,131.5838],[33.4059,131.58295],[33.40689,131.58258],[33.40817,131.58237],[33.4094,131.58159],[33.41,131.58074],[33.41052,131.57915],[33.41207,131.5681],[33.41233,131.56559],[33.41226,131.55522],[33.4126,131.55398],[33.41311,131.55301],[33.41383,131.55226],[33.41457,131.55183],[33.41541,131.55159],[33.41741,131.55148],[33.41853,131.55109],[33.41956,131.55047],[33.42083,131.54937],[33.42636,131.54311],[33.42716,131.54194],[33.42772,131.54031],[33.42823,131.53668],[33.42965,131.53119],[33.43051,131.52871],[33.43192,131.52562],[33.43318,131.5236],[33.43586,131.52025],[33.43708,131.51903],[33.43859,131.51826],[33.44189,131.51774],[33.44341,131.51684],[33.44406,131.51614],[33.44526,131.51419],[33.44612,131.5113],[33.44695,131.50916],[33.45095,131.50129],[33.45184,131.5002],[33.45317,131.49954],[33.45393,131.49951],[33.46166,131.50086],[33.46282,131.50065],[33.46852,131.49758],[33.47337,131.49576],[33.47482,131.49491],[33.47555,131.49424],[33.48039,131.48808],[33.48108,131.48687],[33.48148,131.48561],[33.48195,131.47804],[33.48236,131.47595],[33.48282,131.47506],[33.48414,131.4733],[33.48671,131.47105],[33.48839,131.46988],[33.48977,131.4681],[33.49108,131.46461],[33.49981,131.4385],[33.50062,131.43658],[33.502,131.43426],[33.50672,131.42527],[33.50802,131.42406],[33.51759,131.41792],[33.53269,131.41184],[33.53643,131.41001],[33.53739,131.40905],[33.53826,131.40753],[33.53944,131.40315],[33.54001,131.40179],[33.54273,131.39672],[33.54384,131.39541],[33.54461,131.39486],[33.54606,131.39429],[33.55475,131.39222],[33.55625,131.39157],[33.55726,131.39078],[33.56376,131.38459],[33.56502,131.38251],[33.56567,131.38033],[33.56589,131.37807],[33.56423,131.34641],[33.56704,131.31587],[33.56449,131.2917],[33.56453,131.28966],[33.56496,131.28815],[33.57064,131.27663],[33.57165,131.27428],[33.57183,131.27316],[33.57212,131.26396],[33.57238,131.2618],[33.57619,131.24878],[33.5773,131.24736],[33.58384,131.243],[33.5854,131.24173],[33.58848,131.23798],[33.59298,131.23201],[33.59334,131.2313],[33.59363,131.22933],[33.59323,131.21922],[33.59328,131.21616],[33.59747,131.20519],[33.5976,131.20416],[33.59749,131.19804],[33.59762,131.19685],[33.60302,131.17642],[33.60397,131.1745],[33.60877,131.16995],[33.60942,131.16901],[33.61816,131.14779],[33.61939,131.14388],[33.62112,131.13665],[33.6212,131.13582],[33.62134,131.12166],[33.62117,131.12],[33.62088,131.11919],[33.61733,131.11412],[33.61666,131.11214],[33.61652,131.11064],[33.61682,131.10371],[33.61721,131.10172],[33.61802,131.1001],[33.62178,131.09654],[33.6253,131.09035],[33.6369,131.07231],[33.63751,131.0717],[33.64694,131.06469],[33.658,131.0533],[33.65981,131.0521],[33.66302,131.05102],[33.66442,131.05036],[33.66539,131.04954],[33.66913,131.04522],[33.67039,131.04358],[33.67134,131.04193],[33.67511,131.03328],[33.67545,131.03168],[33.67567,131.02649],[33.67618,131.02466],[33.67688,131.02337],[33.67789,131.02225],[33.67903,131.0215],[33.6825,131.02057],[33.68382,131.01987],[33.69439,131.00906],[33.70537,130.99843],[33.70599,130.99762],[33.70822,130.99361],[33.71278,130.98737],[33.71983,130.97507],[33.72083,130.97386],[33.73087,130.96938],[33.73306,130.96866],[33.73532,130.96841],[33.75145,130.97145],[33.75549,130.97243],[33.76596,130.97548],[33.77358,130.97641],[33.77479,130.97675],[33.77945,130.97899],[33.78045,130.97927],[33.78196,130.97926],[33.78947,130.97806],[33.79103,130.97755],[33.79241,130.97657],[33.79803,130.96923],[33.79889,130.96694],[33.79952,130.96395],[33.80022,130.96264],[33.80294,130.95875],[33.81077,130.95236],[33.82535,130.94381],[33.82625,130.94282],[33.8305,130.9366],[33.83683,130.93012],[33.83755,130.92888],[33.83807,130.92748],[33.84423,130.90357],[33.84495,130.90093],[33.8455,130.89972],[33.84655,130.89851],[33.85177,130.89525],[33.8533,130.89381],[33.86376,130.87749],[33.86503,130.87618],[33.86754,130.87413],[33.86793,130.87357],[33.86858,130.87168],[33.86876,130.86832],[33.86917,130.86646],[33.87009,130.86476],[33.87131,130.86338],[33.87219,130.86281],[33.8756,130.86162],[33.87728,130.86162],[33.87823,130.8621],[33.88137,130.86457],[33.88379,130.86604],[33.88697,130.86835],[33.88761,130.86924],[33.88812,130.87043],[33.88858,130.87178],[33.88868,130.87262],[33.88853,130.87419],[33.88679,130.88213],[33.88685,130.88251]],
   'Beppu|Yoshizuka':[[33.27962,131.50031],[33.28287,131.50174],[33.2922,131.50042],[33.31788,131.49918],[33.32878,131.49359],[33.33146,131.49297],[33.3433,131.49313],[33.34927,131.494],[33.35956,131.49781],[33.36132,131.49995],[33.36955,131.52288],[33.37086,131.53619],[33.36665,131.55173],[33.36718,131.55542],[33.37619,131.5622],[33.37885,131.56923],[33.38265,131.57362],[33.38536,131.57925],[33.38696,131.58073],[33.39249,131.58147],[33.39643,131.58525],[33.40134,131.5859],[33.40961,131.58146],[33.41057,131.57927],[33.41221,131.56672],[33.41221,131.55563],[33.41294,131.55329],[33.41453,131.55182],[33.41942,131.5504],[33.4263,131.54293],[33.42759,131.54044],[33.4299,131.53026],[33.4326,131.52434],[33.437,131.51894],[33.44211,131.51755],[33.44408,131.51614],[33.44697,131.50903],[33.4515,131.5005],[33.45375,131.49947],[33.46288,131.50058],[33.47438,131.4952],[33.48036,131.48807],[33.48159,131.48505],[33.48233,131.47605],[33.49014,131.46682],[33.49987,131.43853],[33.50682,131.42513],[33.51722,131.41815],[33.53617,131.41018],[33.53813,131.40786],[33.53993,131.40209],[33.54385,131.39542],[33.54557,131.39438],[33.55626,131.3916],[33.56497,131.38294],[33.56592,131.37841],[33.56427,131.34579],[33.56704,131.31629],[33.56466,131.28925],[33.57142,131.27476],[33.57232,131.26192],[33.5762,131.24913],[33.57756,131.24733],[33.58635,131.24078],[33.59311,131.23156],[33.59357,131.2291],[33.59325,131.21652],[33.59743,131.20549],[33.59763,131.19697],[33.60295,131.17647],[33.60431,131.1741],[33.60953,131.16896],[33.61917,131.14479],[33.62121,131.1358],[33.62131,131.12097],[33.62079,131.11895],[33.6176,131.11447],[33.61668,131.1121],[33.61736,131.10126],[33.6187,131.09915],[33.62168,131.0966],[33.63743,131.07192],[33.64633,131.06523],[33.65874,131.05267],[33.66484,131.04995],[33.67041,131.04361],[33.6752,131.03322],[33.67576,131.02626],[33.67722,131.02301],[33.6791,131.02153],[33.6842,131.01973],[33.70506,130.99888],[33.71313,130.98678],[33.71996,130.97478],[33.72719,130.97089],[33.72149,130.97338],[33.71817,130.97393],[33.69623,130.96174],[33.69364,130.96156],[33.68156,130.96407],[33.67904,130.96374],[33.67642,130.96236],[33.65114,130.93982],[33.64072,130.92237],[33.6379,130.91902],[33.63347,130.91647],[33.62424,130.91465],[33.62186,130.91317],[33.61852,130.90615],[33.61691,130.8984],[33.61275,130.88513],[33.61292,130.87679],[33.61523,130.87338],[33.61751,130.87193],[33.62558,130.8702],[33.63007,130.86603],[33.63527,130.86534],[33.64374,130.86178],[33.65137,130.85465],[33.65187,130.85288],[33.65158,130.84915],[33.65215,130.84503],[33.65032,130.83628],[33.64808,130.83026],[33.64755,130.82578],[33.64311,130.82065],[33.64216,130.8187],[33.64292,130.81094],[33.64241,130.80802],[33.63959,130.8029],[33.63403,130.79963],[33.63167,130.79966],[33.63274,130.79869],[33.63357,130.79642],[33.63202,130.7856],[33.63341,130.77674],[33.63105,130.76844],[33.62813,130.76582],[33.62591,130.76256],[33.62018,130.76239],[33.61671,130.75691],[33.61531,130.74379],[33.61644,130.73796],[33.61589,130.73642],[33.61389,130.73418],[33.61339,130.73229],[33.61545,130.72632],[33.6146,130.71955],[33.61552,130.71686],[33.62405,130.71265],[33.63963,130.69422],[33.64128,130.69356],[33.64342,130.6941],[33.6321,130.68942],[33.62645,130.68948],[33.62527,130.6887],[33.62299,130.68535],[33.62048,130.68356],[33.59909,130.67523],[33.59306,130.67402],[33.58565,130.66788],[33.58462,130.66535],[33.58518,130.65556],[33.58672,130.65025],[33.58592,130.64388],[33.58695,130.63735],[33.59045,130.62934],[33.59455,130.62507],[33.59577,130.62109],[33.59552,130.61834],[33.59304,130.61415],[33.59194,130.60944],[33.5919,130.60322],[33.59319,130.59764],[33.59537,130.59313],[33.59881,130.58898],[33.61729,130.57353],[33.61843,130.57095],[33.61878,130.56607],[33.62166,130.55943],[33.62318,130.55316],[33.62165,130.54207],[33.624,130.53491],[33.62447,130.53087],[33.6227,130.5049],[33.61974,130.49324],[33.61648,130.48602],[33.61613,130.48144],[33.61356,130.47799],[33.61252,130.47558],[33.611,130.46577],[33.61247,130.46008],[33.61408,130.43002],[33.61352,130.42818],[33.61176,130.42567],[33.60681,130.42397]],
   'Beppu|Yufuin':[[33.27962,131.50031],[33.27722,131.49926],[33.27572,131.49913],[33.27094,131.50098],[33.27006,131.50171],[33.26946,131.50259],[33.269,131.50407],[33.26848,131.50849],[33.26703,131.51249],[33.26529,131.51589],[33.26409,131.52133],[33.26153,131.52882],[33.26048,131.53071],[33.25812,131.53335],[33.25728,131.53543],[33.25664,131.54198],[33.25507,131.54585],[33.25466,131.54777],[33.2552,131.55432],[33.25475,131.55895],[33.25408,131.56088],[33.25235,131.56384],[33.2511,131.56884],[33.25025,131.57342],[33.24904,131.57633],[33.24829,131.57886],[33.24757,131.58006],[33.24507,131.58259],[33.24034,131.59017],[33.23451,131.60259],[33.23253,131.60598],[33.23148,131.6087],[33.22947,131.61293],[33.22757,131.61465],[33.22576,131.61714],[33.22496,131.61794],[33.22347,131.61834],[33.22213,131.61785],[33.22042,131.61623],[33.21989,131.6152],[33.21976,131.61444],[33.21983,131.61287],[33.22055,131.61024],[33.22071,131.60791],[33.22018,131.60199],[33.21642,131.59362],[33.21422,131.59075],[33.21376,131.58942],[33.21377,131.58836],[33.21517,131.57946],[33.21669,131.57214],[33.21657,131.57024],[33.21612,131.56897],[33.21364,131.56339],[33.21147,131.56049],[33.21027,131.56002],[33.20423,131.55887],[33.20232,131.55806],[33.1987,131.55519],[33.1967,131.55264],[33.19348,131.54988],[33.19294,131.5491],[33.19261,131.54812],[33.19258,131.54708],[33.19281,131.54612],[33.19458,131.54297],[33.19597,131.53607],[33.19757,131.53338],[33.19996,131.53039],[33.20097,131.52739],[33.20112,131.5263],[33.20084,131.52447],[33.19752,131.51733],[33.19622,131.51206],[33.19622,131.50968],[33.19688,131.50728],[33.19694,131.50641],[33.19592,131.50158],[33.19627,131.49896],[33.19616,131.49793],[33.19565,131.49682],[33.19167,131.49171],[33.1913,131.49071],[33.19126,131.48935],[33.19158,131.4883],[33.19234,131.4873],[33.19534,131.48577],[33.19697,131.48439],[33.19796,131.48323],[33.19934,131.4812],[33.20003,131.47933],[33.20032,131.47822],[33.20037,131.47673],[33.20011,131.47378],[33.19965,131.4728],[33.19906,131.47219],[33.19706,131.47142],[33.19346,131.47154],[33.192,131.4706],[33.19048,131.46733],[33.18821,131.4653],[33.18612,131.46221],[33.18416,131.45713],[33.1842,131.45535],[33.18554,131.45155],[33.1857,131.45013],[33.18532,131.44878],[33.18419,131.44666],[33.18415,131.44393],[33.18452,131.44298],[33.18729,131.43845],[33.18763,131.43703],[33.18696,131.43382],[33.18732,131.42994],[33.18723,131.42838],[33.18458,131.41549],[33.18327,131.41317],[33.18302,131.41197],[33.1834,131.41021],[33.18477,131.40807],[33.18513,131.4058],[33.18508,131.40119],[33.18482,131.3979],[33.18648,131.39254],[33.1864,131.39145],[33.1857,131.38938],[33.18571,131.38827],[33.18596,131.38731],[33.18706,131.38552],[33.18739,131.38457],[33.18716,131.38181],[33.18737,131.38055],[33.18938,131.37794],[33.19118,131.37472],[33.19233,131.36824],[33.19311,131.36709],[33.19485,131.36569],[33.19541,131.36466],[33.19558,131.36383],[33.19555,131.36118],[33.19709,131.35788],[33.19727,131.35469],[33.19846,131.35063],[33.19893,131.34962],[33.2018,131.34551],[33.20356,131.34466],[33.20516,131.34277],[33.20785,131.34115],[33.21152,131.33515],[33.2155,131.33193],[33.21751,131.33146],[33.22134,131.32939],[33.22219,131.32868],[33.22337,131.32718],[33.22427,131.32656],[33.22939,131.32577],[33.23015,131.32531],[33.23196,131.32345],[33.23427,131.32308],[33.23616,131.32218],[33.23768,131.32216],[33.23962,131.32277],[33.24053,131.32382],[33.24096,131.32535],[33.24086,131.32639],[33.24012,131.32871],[33.24009,131.32953],[33.24048,131.33088],[33.24573,131.33874],[33.24832,131.34075],[33.24985,131.34413],[33.2521,131.34563],[33.25293,131.34655],[33.25362,131.34827],[33.25407,131.35164],[33.25578,131.35485],[33.25697,131.35579],[33.25917,131.35598],[33.26022,131.35587],[33.26245,131.355]],
   'Fukuoka Airport|Hakata':[[33.59732,130.44818],[33.59822,130.44473],[33.59862,130.4421],[33.59856,130.43997],[33.59841,130.43886],[33.59813,130.43778],[33.59779,130.43699],[33.59749,130.43646],[33.59673,130.4355],[33.59552,130.43452],[33.59034,130.43163],[33.58879,130.43068],[33.58847,130.43027],[33.58807,130.42937],[33.58794,130.42819],[33.58807,130.42755],[33.58836,130.42697],[33.58968,130.42528],[33.58984,130.42489],[33.59006,130.42061]],
@@ -1505,13 +1590,13 @@ const RAILCHAIN = {
   'Akasaka|Nishitetsu-Yakuin':['Akasaka->*Nishitetsu-Fukuoka','Nishitetsu-Fukuoka->Nishitetsu-Yakuin'],
   'Akasaka|Tenjin':['Akasaka->*Tenjin'],
   'Akasaka|Tenjin-minami':['Akasaka->*Nishitetsu-Fukuoka','Nishitetsu-Fukuoka->Tenjin-minami'],
-  'Beppu|Gion':['Beppu->Yoshizuka','Yoshizuka->Gion'],
-  'Beppu|Hakata':['Beppu->Yoshizuka','Yoshizuka->Hakata'],
-  'Beppu|Nakasu-Kawabata':['Beppu->Yoshizuka','Yoshizuka->*Gion','Gion->*Nakasu-Kawabata'],
-  'Beppu|Nishijin':['Beppu->Yoshizuka','Yoshizuka->*Gion','Gion->*Nakasu-Kawabata','Nakasu-Kawabata->*Tenjin','Tenjin->*Akasaka','Akasaka->Ohorikoen','Ohorikoen->*Nishijin'],
-  'Beppu|Nishitetsu-Fukuoka':['Beppu->Yoshizuka','Yoshizuka->Hakata','Hakata->*Tenjin-minami','Tenjin-minami->*Nishitetsu-Fukuoka'],
-  'Beppu|Tenjin':['Beppu->Yoshizuka','Yoshizuka->*Gion','Gion->*Nakasu-Kawabata','Nakasu-Kawabata->*Tenjin'],
-  'Beppu|Tenjin-minami':['Beppu->Yoshizuka','Yoshizuka->Hakata','Hakata->*Tenjin-minami'],
+  'Beppu|Gion':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata','Hakata->Gion'],
+  'Beppu|Hakata':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata'],
+  'Beppu|Nakasu-Kawabata':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata','Hakata->Gion','Gion->*Nakasu-Kawabata'],
+  'Beppu|Nishijin':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata','Hakata->Gion','Gion->*Nakasu-Kawabata','Nakasu-Kawabata->*Tenjin','Tenjin->*Akasaka','Akasaka->Ohorikoen','Ohorikoen->*Nishijin'],
+  'Beppu|Nishitetsu-Fukuoka':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata','Hakata->*Tenjin-minami','Tenjin-minami->*Nishitetsu-Fukuoka'],
+  'Beppu|Tenjin':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata','Hakata->Gion','Gion->*Nakasu-Kawabata','Nakasu-Kawabata->*Tenjin'],
+  'Beppu|Tenjin-minami':['Beppu->Kokura','Kokura->Yoshizuka','Yoshizuka->Hakata','Hakata->*Tenjin-minami'],
   'Beppu|Yufuin':['Beppu->Yufuin'],
   'Fukuoka Airport|Gion':['Fukuoka Airport->Hakata','Hakata->*Gion'],
   'Fukuoka Airport|Hakata':['Fukuoka Airport->*Hakata'],
@@ -1521,7 +1606,7 @@ const RAILCHAIN = {
   'Fukuoka Airport|Tenjin':['Fukuoka Airport->Hakata','Hakata->*Gion','Gion->*Nakasu-Kawabata','Nakasu-Kawabata->*Tenjin'],
   'Fukuoka Airport|Tenjin-minami':['Fukuoka Airport->Hakata','Hakata->*Tenjin-minami'],
   'Gion|Akasaka':['Gion->Nakasu-Kawabata','Nakasu-Kawabata->Tenjin','*Tenjin->Akasaka'],
-  'Gion|Beppu':['Gion->Yoshizuka','Yoshizuka->Beppu'],
+  'Gion|Beppu':['Gion->Hakata','Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Gion|Fukuoka Airport':['*Gion->Hakata','Hakata->Fukuoka Airport'],
   'Gion|Hakata':['Gion->*Hakata'],
   'Gion|Hiroshima':['Gion->Kokura','Kokura->Hiroshima'],
@@ -1543,7 +1628,7 @@ const RAILCHAIN = {
   'Gion|Yanagawa':['*Gion->Hakata','Hakata->Takeshita','Takeshita->Kasuga','Kasuga->Yanagawa'],
   'Gion|Yufuin':['*Gion->Hakata','*Hakata->Takeshita','*Takeshita->Kasuga','Kasuga->Kurume','Kurume->Yufuin'],
   'Hakata|Akasaka':['*Hakata->Gion','Gion->Nakasu-Kawabata','Nakasu-Kawabata->Tenjin','*Tenjin->Akasaka'],
-  'Hakata|Beppu':['Hakata->Yoshizuka','Yoshizuka->Beppu'],
+  'Hakata|Beppu':['Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Hakata|Fukuoka Airport':['*Hakata->Fukuoka Airport'],
   'Hakata|Gion':['*Hakata->Gion'],
   'Hakata|Hiroshima':['Hakata->Kokura','Kokura->Hiroshima'],
@@ -1614,7 +1699,7 @@ const RAILCHAIN = {
   'Nagasaki|Tenjin':['Nagasaki->Hakata','Hakata->Tenjin'],
   'Nagasaki|Tenjin-minami':['Nagasaki->Tenjin-minami'],
   'Nakasu-Kawabata|Akasaka':['*Nakasu-Kawabata->Tenjin','*Tenjin->Akasaka'],
-  'Nakasu-Kawabata|Beppu':['*Nakasu-Kawabata->Gion','*Gion->Yoshizuka','Yoshizuka->Beppu'],
+  'Nakasu-Kawabata|Beppu':['*Nakasu-Kawabata->Gion','Gion->Hakata','Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Nakasu-Kawabata|Fukuoka Airport':['*Nakasu-Kawabata->Gion','*Gion->Hakata','*Hakata->Fukuoka Airport'],
   'Nakasu-Kawabata|Gion':['Nakasu-Kawabata->Gion'],
   'Nakasu-Kawabata|Hakata':['*Nakasu-Kawabata->Gion','Gion->Hakata'],
@@ -1636,7 +1721,7 @@ const RAILCHAIN = {
   'Nakasu-Kawabata|Yanagawa':['*Nakasu-Kawabata->Gion','*Gion->Hakata','Hakata->Takeshita','Takeshita->Kasuga','Kasuga->Yanagawa'],
   'Nakasu-Kawabata|Yufuin':['*Nakasu-Kawabata->Gion','*Gion->Hakata','*Hakata->Takeshita','*Takeshita->Kasuga','Kasuga->Kurume','Kurume->Yufuin'],
   'Nishijin|Akasaka':['*Nishijin->Ohorikoen','*Ohorikoen->Akasaka'],
-  'Nishijin|Beppu':['*Nishijin->Ohorikoen','Ohorikoen->Akasaka','*Akasaka->Tenjin','*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','*Gion->Yoshizuka','Yoshizuka->Beppu'],
+  'Nishijin|Beppu':['*Nishijin->Ohorikoen','Ohorikoen->Akasaka','*Akasaka->Tenjin','*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','Gion->Hakata','Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Nishijin|Fukuoka Airport':['*Nishijin->Ohorikoen','Ohorikoen->Akasaka','*Akasaka->Tenjin','*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','*Gion->Hakata','Hakata->Fukuoka Airport'],
   'Nishijin|Gion':['*Nishijin->Ohorikoen','Ohorikoen->Akasaka','*Akasaka->Tenjin','*Tenjin->Nakasu-Kawabata','Nakasu-Kawabata->Gion'],
   'Nishijin|Hakata':['*Nishijin->Ohorikoen','Ohorikoen->Akasaka','*Akasaka->Tenjin','*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','Gion->Hakata'],
@@ -1665,7 +1750,7 @@ const RAILCHAIN = {
   'Nishitetsu-Dazaifu|Tenjin':['Nishitetsu-Dazaifu->Nishitetsu-Ohashi','Nishitetsu-Ohashi->Nishitetsu-Hirao','Nishitetsu-Hirao->Nishitetsu-Yakuin','Nishitetsu-Yakuin->Tenjin'],
   'Nishitetsu-Dazaifu|Tenjin-minami':['Nishitetsu-Dazaifu->Nishitetsu-Ohashi','Nishitetsu-Ohashi->Nishitetsu-Hirao','Nishitetsu-Hirao->Nishitetsu-Yakuin','Nishitetsu-Yakuin->*Tenjin-minami'],
   'Nishitetsu-Fukuoka|Akasaka':['*Nishitetsu-Fukuoka->Akasaka'],
-  'Nishitetsu-Fukuoka|Beppu':['*Nishitetsu-Fukuoka->Tenjin-minami','*Tenjin-minami->Hakata','Hakata->Yoshizuka','Yoshizuka->Beppu'],
+  'Nishitetsu-Fukuoka|Beppu':['*Nishitetsu-Fukuoka->Tenjin-minami','*Tenjin-minami->Hakata','Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Nishitetsu-Fukuoka|Fukuoka Airport':['*Nishitetsu-Fukuoka->Tenjin-minami','*Tenjin-minami->Hakata','Hakata->Fukuoka Airport'],
   'Nishitetsu-Fukuoka|Gion':['Nishitetsu-Fukuoka->Nakasu-Kawabata','Nakasu-Kawabata->Gion'],
   'Nishitetsu-Fukuoka|Hakata':['*Nishitetsu-Fukuoka->Tenjin-minami','*Tenjin-minami->Hakata'],
@@ -1706,7 +1791,7 @@ const RAILCHAIN = {
   'Sasebo|Tenjin':['Sasebo->Meinohama','Meinohama->Nishijin','Nishijin->Ohorikoen','Ohorikoen->Akasaka','Akasaka->*Tenjin'],
   'Sasebo|Tenjin-minami':['Sasebo->Meinohama','Meinohama->Nishijin','Nishijin->Ohorikoen','Ohorikoen->Akasaka','Akasaka->*Nishitetsu-Fukuoka','Nishitetsu-Fukuoka->Tenjin-minami'],
   'Tenjin-minami|Akasaka':['Tenjin-minami->Nishitetsu-Fukuoka','*Nishitetsu-Fukuoka->Akasaka'],
-  'Tenjin-minami|Beppu':['*Tenjin-minami->Hakata','Hakata->Yoshizuka','Yoshizuka->Beppu'],
+  'Tenjin-minami|Beppu':['*Tenjin-minami->Hakata','Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Tenjin-minami|Fukuoka Airport':['*Tenjin-minami->Hakata','Hakata->Fukuoka Airport'],
   'Tenjin-minami|Gion':['Tenjin-minami->Gion'],
   'Tenjin-minami|Hakata':['*Tenjin-minami->Hakata'],
@@ -1727,7 +1812,7 @@ const RAILCHAIN = {
   'Tenjin-minami|Yanagawa':['*Tenjin-minami->Nishitetsu-Yakuin','Nishitetsu-Yakuin->Nishitetsu-Hirao','Nishitetsu-Hirao->Nishitetsu-Ohashi','*Nishitetsu-Ohashi->Nishitetsu-Futsukaichi','*Nishitetsu-Futsukaichi->Yanagawa'],
   'Tenjin-minami|Yufuin':['Tenjin-minami->Takeshita','*Takeshita->Kasuga','Kasuga->Kurume','Kurume->Yufuin'],
   'Tenjin|Akasaka':['*Tenjin->Akasaka'],
-  'Tenjin|Beppu':['*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','*Gion->Yoshizuka','Yoshizuka->Beppu'],
+  'Tenjin|Beppu':['*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','Gion->Hakata','Hakata->Yoshizuka','Yoshizuka->Kokura','Kokura->Beppu'],
   'Tenjin|Fukuoka Airport':['*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','*Gion->Hakata','Hakata->Fukuoka Airport'],
   'Tenjin|Gion':['*Tenjin->Nakasu-Kawabata','Nakasu-Kawabata->Gion'],
   'Tenjin|Hakata':['*Tenjin->Nakasu-Kawabata','*Nakasu-Kawabata->Gion','Gion->Hakata'],
@@ -1817,6 +1902,7 @@ const RAILRUN = {
   "Akasaka|Nishitetsu-Fukuoka":[["K",7]],
   "Akasaka|Ohorikoen":[["K",7]],
   "Akasaka|Tenjin":[["K",7]],
+  "Beppu|Kokura":[["JF",251]],
   "Beppu|Yoshizuka":[["JF",123],["JI",9],["JJ",21],["JC",43]],
   "Beppu|Yufuin":[["JF",30],["KU",150]],
   "Fukuoka Airport|Hakata":[["K",20]],

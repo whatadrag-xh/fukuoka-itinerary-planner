@@ -926,8 +926,8 @@ function renderTips(){
   if(regions.has('dazaifu')) items.push('<li><b>Dazaifu:</b> Nishitetsu from Tenjin is ¥480 since April 2026. The Tabito Liner from Hakata is ¥800 and the City Pass does not cover it.</li>');
   if(regions.has('kumamoto')) items.push('<li><b>Kumamoto:</b> the castle is a 15-minute tram ride from the station. The tram is a flat ¥170; a 1-day pass is ¥500.</li>');
   if(regions.has('nagasaki')) items.push('<li><b>Nagasaki:</b> trams are a flat ¥140. Ride line 1 or 3 to the Peace Park, and the ropeway runs from 09:00.</li>');
-  if(regions.has('hiroshima')) items.push('<li><b>Hiroshima:</b> the Peace Park is a 20-minute tram ride (¥190) from the station. For Miyajima, the JR ferry is covered by the rail pass.</li>');
-  if(regions.has('kagoshima')) items.push('<li><b>Kagoshima:</b> the Sakurajima ferry is ¥200 each way and runs 24 hours. The island bus stops early.</li>');
+  if(regions.has('hiroshima')) items.push('<li><b>Hiroshima:</b> the Peace Park is a 20-minute tram ride (¥190) from the station. For Miyajima, JR to Miyajimaguchi (25 min, ¥420) then the 10-minute ferry at ¥200 plus the ¥100 visitor tax — free with a rail pass.</li>');
+  if(regions.has('kagoshima')) items.push('<li><b>Kagoshima:</b> the Sakurajima ferry is ¥250 each way, 15 minutes, from 04:00; the last boat back leaves Sakurajima at 23:00. The island bus stops early.</li>');
   if(regions.has('beppu') || regions.has('yufuin')) items.push('<li><b>Beppu and Yufuin:</b> reserve the Yufuin-no-Mori in advance, and remember the last Sonic back to Hakata leaves before 21:00.</li>');
   items.push('<li><b>Yatai are cash only</b>, and most stalls expect each guest to order a drink. Budget ¥3,000 per person.</li>');
   items.push('<li><b>Any stop can be dragged</b> to a new place in the day, or moved to another day with the day menu on the row.</li>');
@@ -1107,6 +1107,38 @@ function routeSegments(leg){
   if(!from || !to) return [];
   if(leg.src === 'walk') return [{kind:'walk', from, to, title:'Walk it'}];
 
+  /* an island leg: reach the pier, cross on the operator's route, walk off the boat */
+  if(leg.src === 'ferry' && leg.ferry){
+    const f = leg.ferry, segs = [];
+    const dock = p => ({name:p.n, jp:p.jp, lat:p.lat, lon:p.lon});
+    const stationOf = st => ({name:st.n, jp:st.jp, lat:st.lat, lon:st.lon});
+    if(f.base){
+      /* the island is a day trip: train to the region, then the boat */
+      const a = nearestStation(from.lat, from.lon, 8);
+      const b = nearestStation(to.lat, to.lon, 60);
+      if(a && b && a.s !== b.s){
+        if(haversine(from, a.s) * 1000 > 200)
+          segs.push({kind:'walk', from, to:stationOf(a.s), title:'Walk to ' + a.s.n, station:a.s});
+        segs.push({kind:'ride', from:a.s, to:b.s, title:f.base.mode, detail:f.base.detail,
+                   min:f.base.min, fare:f.base.fare});
+        segs.push({kind:'onward', from:stationOf(b.s), to:dock(f.dep), title:'To ' + f.dep.n,
+                   km:haversine(b.s, f.dep), detail:f.access.mode});
+      }
+    } else {
+      const d0 = haversine(from, f.dep);
+      if(d0 > 0.25){
+        segs.push({kind:'onward', from, to:dock(f.dep), title:'To ' + f.dep.n, km:d0,
+                   detail:f.onFoot ? 'On foot' : f.access.mode});
+      }
+    }
+    segs.push({kind:'ferry', from:dock(f.dep), to:dock(f.arr), title:f.name, detail:f.detail,
+               min:f.min, fare:f.fare, path:f.path});
+    const d1 = haversine(f.arr, to);
+    if(d1 <= 1.2) segs.push({kind:'walk', from:dock(f.arr), to, title:'Walk to ' + to.name});
+    else segs.push({kind:'onward', from:dock(f.arr), to, title:'Onward to ' + to.name, km:d1});
+    return segs;
+  }
+
   const a = nearestStation(from.lat, from.lon, 8);
   const b = nearestStation(to.lat, to.lon, 20);
   if(!a) return [{kind:'ride', from, to, title:leg.mode, detail:leg.detail, min:leg.min, fare:leg.fare}];
@@ -1269,9 +1301,11 @@ function routeSheetHtml(leg, segs){
       '<div class="rbody"><b>' + esc(sg.title) + '</b>' +
         '<div class="rval">' + (sg.kind === 'walk'
           ? 'about ' + est + ' m · ' + segMins(est) + ' min'
-          : sg.kind === 'onward'
-            ? Math.round(sg.km * 10) / 10 + ' km · local bus or taxi from the station'
-            : esc(sg.detail || '') + (sg.min ? ' · ' + mins(sg.min) : '') + (sg.fare ? ' · ' + yen(sg.fare) : '')) +
+          : sg.kind === 'ferry'
+            ? sg.min + ' min on the water · ' + yen(sg.fare)
+            : sg.kind === 'onward'
+              ? Math.round(sg.km * 10) / 10 + ' km · ' + (sg.detail ? esc(sg.detail) : 'local bus or taxi from the station')
+              : esc(sg.detail || '') + (sg.min ? ' · ' + mins(sg.min) : '') + (sg.fare ? ' · ' + yen(sg.fare) : '')) +
         '</div>' +
         (sg.kind === 'ride' && sg.from.jp
           ? '<div class="rsub">' + esc(sg.from.n) + ' ' + esc(sg.from.jp) + ' → ' + esc(sg.to.n) + ' ' + esc(sg.to.jp) + '</div>'
@@ -1285,6 +1319,9 @@ function routeSheetHtml(leg, segs){
       if(!legLines.some(x => x.id === l.id)) legLines.push(l);
     });
   });
+  segs.filter(sg => sg.kind === 'ferry').forEach(sg => {
+    legLines.push({id:'boat' + sg.title, name:'Boat · ' + sg.title, colour:'#2F6FB5'});
+  });
   return '<div class="rhead">' +
       '<p class="eyebrow">Getting there · 道順</p>' +
       '<h2 id="routeTitle">' + esc(leg.from.name) + ' <span class="rarrow">→</span> ' + esc(leg.to.name) + '</h2>' +
@@ -1297,8 +1334,9 @@ function routeSheetHtml(leg, segs){
     (segs.selfStation ? '<p class="rnote">Both ends are closest to ' + esc(segs.selfStation) + ', so there is no train to catch — this leg is on foot.</p>' : '') +
     '<ol class="rsteps">' + steps + '</ol>' +
     (rail ? '<p class="rnote">Each railway is drawn in the colour its operator uses on the route map, with its name on the line and a dot at every station it passes. Check the platform screens on the day for the exact service.</p>' : '') +
-    (segs.some(sg => sg.kind === 'onward') ? '<p class="rnote">The last stretch is a local bus or a taxi from the station; the grey line is the direction, not a street route.</p>' : '') +
-    '<p class="rnote" id="routeSource">Streets, railway tracks and line identities from OpenStreetMap; line colours from the operators\u2019 route maps.</p>';
+    (segs.some(sg => sg.kind === 'onward') && !segs.some(sg => sg.kind === 'ferry') ? '<p class="rnote">The last stretch is a local bus or a taxi from the station; the grey line is the direction, not a street route.</p>' : '') +
+    (segs.some(sg => sg.kind === 'ferry') ? '<p class="rnote">The boat fare is an adult single from the operator\u2019s own table, and the line on the map is the published route. Island timetables thin out in the evening — check the last sailing back.</p>' : '') +
+    '<p class="rnote" id="routeSource">Streets, railway tracks, ferry routes and line identities from OpenStreetMap; line colours and fares from the operators\u2019 own route maps and fare tables.</p>';
 }
 
 function ensureRouteMap(){
@@ -1340,6 +1378,18 @@ async function drawRoute(leg, segs){
         if(li) li.textContent = 'Straight-line estimate — the street router did not answer';
       }
       L.polyline(coords, {color:'#4B79D6', weight:5, opacity:.9, lineCap:'round', lineJoin:'round'}).addTo(layer);
+    } else if(sg.kind === 'ferry'){
+      coords = sg.path.map(p => [p[0], p[1]]);
+      L.polyline(coords, {color:'#FFFFFF', weight:9, opacity:.85, lineCap:'round', lineJoin:'round'}).addTo(layer);
+      L.polyline(coords, {color:'#2F6FB5', weight:4.5, opacity:.95, dashArray:'1 9', lineCap:'round'}).addTo(layer);
+      const mid = railMid(coords);
+      L.marker(mid.pt, {interactive:false, icon:L.divIcon({className:'rline-ico',
+        html:'<span class="rline-tag" style="--line:#2F6FB5"><i></i>' + esc(sg.title) + ' · ' + sg.min + ' min</span>',
+        iconSize:[0, 0]})}).addTo(layer);
+      [sg.from, sg.to].forEach(pt => {
+        L.circleMarker([pt.lat, pt.lon], {radius:4, color:'#2F6FB5', weight:2, fillColor:'#FFFFFF', fillOpacity:1})
+          .addTo(layer).bindTooltip(esc(pt.name) + (pt.jp ? ' · ' + esc(pt.jp) : ''), {direction:'top'});
+      });
     } else if(sg.kind === 'onward'){
       coords = [[sg.from.lat, sg.from.lon], [sg.to.lat, sg.to.lon]];
       L.polyline(coords, {color:'#8A8F98', weight:4, opacity:.6, dashArray:'10 8', lineCap:'round'}).addTo(layer);
