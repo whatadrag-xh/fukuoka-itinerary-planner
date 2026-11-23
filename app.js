@@ -1143,9 +1143,11 @@ function railPath(a, b){
   if(!steps) return null;
   const out = [];
   for(const step of steps){
-    const cut = step.indexOf('->');
-    const x = step.slice(0, cut), y = step.slice(cut + 2);
-    let piece = RAILSEG[x < y ? x + '|' + y : y + '|' + x];
+    const star = step.indexOf('*') >= 0 ? '*' : '';
+    const s2 = star ? step.replace('*', '') : step;
+    const cut = s2.indexOf('->');
+    const x = s2.slice(0, cut), y = s2.slice(cut + 2);
+    let piece = RAILSEG[star + (x < y ? x + '|' + y : y + '|' + x)];
     if(!piece) return null;
     if(x > y) piece = piece.slice().reverse();
     for(const pt of piece){
@@ -1160,7 +1162,7 @@ function railStations(a, b){
   const steps = (typeof RAILCHAIN !== 'undefined' && a && b) ? RAILCHAIN[a + '|' + b] : null;
   if(!steps) return [a, b];
   const names = [a];
-  steps.forEach(s => names.push(s.slice(s.indexOf('->') + 2)));
+  steps.forEach(s => { const t = s.replace(/\*/g, ''); names.push(t.slice(t.indexOf('->') + 2)); });
   return names;
 }
 
@@ -1176,9 +1178,11 @@ function railRuns(a, b){
   if(!steps) return null;
   const runs = [];
   for(const step of steps){
-    const cut = step.indexOf('->');
-    const x = step.slice(0, cut), y = step.slice(cut + 2);
-    const ck = x < y ? x + '|' + y : y + '|' + x;
+    const star = step.indexOf('*') >= 0 ? '*' : '';
+    const s2 = star ? step.replace('*', '') : step;
+    const cut = s2.indexOf('->');
+    const x = s2.slice(0, cut), y = s2.slice(cut + 2);
+    const ck = star + (x < y ? x + '|' + y : y + '|' + x);
     const piece = RAILSEG[ck];
     if(!piece) return null;
     const rev = x > y;
